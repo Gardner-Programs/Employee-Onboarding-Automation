@@ -1,9 +1,14 @@
-import os
+"""Download the 8x8 phone-number report using session-cookie auth."""
+
+from __future__ import annotations
+
 import io
-import time
+import os
 import pickle
-import requests
+import time
+
 import pandas as pd
+import requests
 
 from config import create_driver
 from utils import login_8x8
@@ -21,13 +26,15 @@ API_HEADERS = {
 }
 
 
-def _apply_cookies(session, cookies):
+def _apply_cookies(session: requests.Session, cookies: list[dict]) -> None:
+    """Clear *session* cookies and apply *cookies* from a Selenium driver."""
     session.cookies.clear()
     for cookie in cookies:
         session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
 
-def _are_cookies_expired(cookies):
+def _are_cookies_expired(cookies: list[dict]) -> bool:
+    """Return True if any cookie in *cookies* has a past expiry timestamp."""
     if not cookies:
         return True
     current_time = time.time()
@@ -38,8 +45,8 @@ def _are_cookies_expired(cookies):
     return False
 
 
-def _get_fresh_cookies():
-    """Login via headless Selenium and return session cookies."""
+def _get_fresh_cookies() -> list[dict] | None:
+    """Log in via headless Selenium and return fresh session cookies."""
     with create_driver(headless=True, url="https://admin.8x8.com/users") as driver:
         if not login_8x8(driver):
             return None
@@ -54,8 +61,8 @@ def _get_fresh_cookies():
         return cookies
 
 
-def _get_session():
-    """Get a requests session with valid 8x8 cookies (cached or fresh)."""
+def _get_session() -> requests.Session | None:
+    """Return a requests Session with valid 8x8 cookies (loaded from disk or freshly obtained)."""
     cookies = None
 
     if os.path.exists(COOKIE_FILE):
@@ -84,7 +91,7 @@ def _get_session():
     return s
 
 
-def _request_with_retry(session, url, **kwargs):
+def _request_with_retry(session: requests.Session, url: str, **kwargs) -> requests.Response:
     """Make a GET request, retrying once with fresh cookies on 401/403."""
     response = session.get(url, **kwargs)
     if response.status_code in [401, 403]:
@@ -97,7 +104,8 @@ def _request_with_retry(session, url, **kwargs):
     return response
 
 
-def get_number_report():
+def get_number_report() -> pd.DataFrame | None:
+    """Download the 8x8 numbers report and return it as a DataFrame (also saved to CSV)."""
     s = _get_session()
     if not s:
         print("Failed to establish session.")

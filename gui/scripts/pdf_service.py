@@ -1,3 +1,7 @@
+"""Generate new-hire login-sheet PDFs and upload them to shared Google Drive folders."""
+
+from __future__ import annotations
+
 import os
 import sys
 import tempfile
@@ -16,18 +20,20 @@ else:
 
 # Shared Drive names
 LOGIN_SHEETS_DRIVE = "Login Sheets"
-SMITH_TEAMS_DRIVE = "New Hire Login Sheets - A. Smith Teams"
+REGIONAL_TEAMS_DRIVE = "New Hire Login Sheets - Regional Teams"
 
 # Cache: (drive_id, folder_path) -> folder_id
 _folder_cache = {}
 _drive_cache = {}
 
 
-def _get_drive_service():
+def _get_drive_service() -> object:
+    """Return a Drive v3 API service instance."""
     return drive_v3_api()
 
 
-def _get_shared_drive_id(service, drive_name):
+def _get_shared_drive_id(service: object, drive_name: str) -> str:
+    """Return the Drive ID for *drive_name*, raising ValueError if not found."""
     if drive_name in _drive_cache:
         return _drive_cache[drive_name]
     result = service.drives().list(
@@ -41,7 +47,8 @@ def _get_shared_drive_id(service, drive_name):
     raise ValueError(f"Shared drive '{drive_name}' not found")
 
 
-def _find_folder(service, parent_id, folder_name, drive_id):
+def _find_folder(service: object, parent_id: str, folder_name: str, drive_id: str) -> str | None:
+    """Return the folder ID for *folder_name* under *parent_id*, or None if not found."""
     q = (
         f"name='{folder_name}' and '{parent_id}' in parents "
         f"and mimeType='application/vnd.google-apps.folder' and trashed=false"
@@ -55,7 +62,8 @@ def _find_folder(service, parent_id, folder_name, drive_id):
     return files[0]["id"] if files else None
 
 
-def _create_folder(service, parent_id, folder_name, drive_id):
+def _create_folder(service: object, parent_id: str, folder_name: str, drive_id: str) -> str:
+    """Create a folder named *folder_name* under *parent_id* and return its ID."""
     metadata = {
         "name": folder_name,
         "mimeType": "application/vnd.google-apps.folder",
@@ -68,7 +76,8 @@ def _create_folder(service, parent_id, folder_name, drive_id):
     return folder["id"]
 
 
-def _ensure_folder_path(service, drive_id, folder_names):
+def _ensure_folder_path(service: object, drive_id: str, folder_names: list[str]) -> str:
+    """Walk/create a folder path like ['Master', '03-20-2026'] under a shared drive."""
     cache_key = (drive_id, "/".join(folder_names))
     if cache_key in _folder_cache:
         return _folder_cache[cache_key]
@@ -84,7 +93,8 @@ def _ensure_folder_path(service, drive_id, folder_names):
     return parent_id
 
 
-def _find_existing_file(service, folder_id, filename, drive_id):
+def _find_existing_file(service: object, folder_id: str, filename: str, drive_id: str) -> str | None:
+    """Return the file ID of *filename* in *folder_id*, or None if not found."""
     q = (
         f"name='{filename}' and '{folder_id}' in parents "
         f"and mimeType='application/pdf' and trashed=false"
@@ -98,7 +108,8 @@ def _find_existing_file(service, folder_id, filename, drive_id):
     return files[0]["id"] if files else None
 
 
-def _upload_pdf(service, folder_id, filename, pdf_path, drive_id):
+def _upload_pdf(service: object, folder_id: str, filename: str, pdf_path: str, drive_id: str) -> None:
+    """Upload or update a PDF file in a shared Drive folder."""
     media = MediaFileUpload(pdf_path, mimetype="application/pdf")
     existing_id = _find_existing_file(service, folder_id, filename, drive_id)
     if existing_id:
@@ -119,10 +130,11 @@ def _upload_pdf(service, folder_id, filename, pdf_path, drive_id):
         print(f"  Uploaded: {filename} -> {folder_id}")
 
 
-def makeLoginSheets(array):
+def makeLoginSheets(array: list[dict]) -> None:
+    """Generate new-hire login-sheet PDFs and upload them to the appropriate shared Drive folders."""
     service = _get_drive_service()
     login_drive_id = _get_shared_drive_id(service, LOGIN_SHEETS_DRIVE)
-    smith_drive_id = _get_shared_drive_id(service, SMITH_TEAMS_DRIVE)
+    regional_drive_id = _get_shared_drive_id(service, REGIONAL_TEAMS_DRIVE)
 
     options = {
         'page-size': 'A4',
@@ -170,7 +182,7 @@ def makeLoginSheets(array):
             upload_to(login_drive_id, ["Master", date_str])
 
             if reporting in ["Branch B", "Branch E", "Branch I"]:
-                upload_to(smith_drive_id, [physical, date_str])
+                upload_to(regional_drive_id, [physical, date_str])
                 if "International" in [physical, reporting]:
                     upload_to(login_drive_id, ["International", date_str])
             elif "International" in [physical, reporting]:

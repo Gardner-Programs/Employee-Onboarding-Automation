@@ -1,9 +1,15 @@
+"""Shared utilities: email sending, 2FA code retrieval, and Selenium login helpers."""
+
+from __future__ import annotations
+
 import os
 import re
 import time
 import base64
+from collections.abc import Callable
 from datetime import datetime
 from email.message import EmailMessage
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,7 +28,7 @@ OFFICE_DISPLAY_MAP = {
     "Branch G-I": "Branch G",
 }
 
-def display_office_name(name):
+def display_office_name(name: str) -> str:
     """Convert office name for display fields only (e.g. AD City, Gmail address).
 
     Branch C-II and Branch G-II are distinct offices — this is ONLY for
@@ -33,7 +39,8 @@ def display_office_name(name):
 
 # --- Email Utilities ---
 
-def sendEmail(to, subject, html_content):
+def sendEmail(to: str, subject: str, html_content: str) -> None:
+    """Send an HTML email via the onboarding Gmail account."""
     gmail_service = gmail_v1_api("formresponse@company.com")
     message = EmailMessage()
     message["To"] = to
@@ -45,7 +52,10 @@ def sendEmail(to, subject, html_content):
 
 # --- Verification Code Retrieval ---
 
-def _get_code_from_gmail(snippet_match, parse_func):
+def _get_code_from_gmail(
+    snippet_match: str,
+    parse_func: Callable[[str], str | None],
+) -> tuple[str, datetime] | str:
     service = gmail_v1_api(os.environ["EMAIL"])
     result = service.users().messages().list(userId="me", maxResults=5).execute()
     for x in result.get("messages", []):
@@ -65,7 +75,8 @@ def _get_code_from_gmail(snippet_match, parse_func):
     return "No code found."
 
 
-def get_tp_code():
+def get_tp_code() -> tuple[str, datetime] | str:
+    """Return the latest Transport Pro 2FA code and its timestamp from Gmail."""
     def parse(snippet):
         search = re.search(r'process\.\s+(\d{6})', snippet)
         if search: return search.group(1)
@@ -73,7 +84,8 @@ def get_tp_code():
     return _get_code_from_gmail("Transport Pro - Verification Code", parse)
 
 
-def get_caller_code():
+def get_caller_code() -> tuple[str, datetime] | str:
+    """Return the latest Free Caller Registry verification code and timestamp from Gmail."""
     def parse(snippet):
         search = re.findall(r'Free Caller Registry Verification Code: \[\d+', snippet)
         if search: return str(search[0]).replace("Free Caller Registry Verification Code: [", "")
@@ -81,7 +93,8 @@ def get_caller_code():
     return _get_code_from_gmail("Free Caller Registry Verification Code:", parse)
 
 
-def get_8x8_code():
+def get_8x8_code() -> tuple[str, datetime] | str:
+    """Return the latest 8x8 login code and its timestamp from Gmail."""
     def parse(snippet):
         search = re.findall(r'login code: \d+', snippet)
         if search: return str(search[0]).replace("login code: ", "")
@@ -91,10 +104,22 @@ def get_8x8_code():
 
 # --- 2FA Verification Loop ---
 
-def wait_for_verification_code(code_func, start_time, max_attempts=10, poll_interval=2):
+def wait_for_verification_code(
+    code_func: Callable,
+    start_time: datetime,
+    max_attempts: int = 10,
+    poll_interval: int = 2,
+) -> str | None:
     """Poll for a fresh verification code from email.
 
-    Returns the code string, or None if max attempts exceeded.
+    Args:
+        code_func: Function that returns ``(code, timestamp)`` or a non-tuple sentinel.
+        start_time: Only accept codes whose timestamp is after this datetime.
+        max_attempts: Maximum number of polling attempts before giving up.
+        poll_interval: Seconds to wait between attempts.
+
+    Returns:
+        The code string, or None if max attempts are exceeded.
     """
     attempts = 0
     while attempts < max_attempts:
@@ -122,7 +147,7 @@ _TP_2FA_SHADOW_HOST = "/html/body/center/div/form/sl-card/sl-input"
 _TP_2FA_SHADOW_BTN = "/html/body/center/div/form/sl-card/sl-button[1]"
 
 
-def login_8x8(driver):
+def login_8x8(driver: webdriver.Firefox) -> bool:
     """Perform 8x8 login with 2FA on an already-navigated driver.
 
     Returns True on success, False on failure (driver is quit on failure).
@@ -152,7 +177,7 @@ def login_8x8(driver):
         return True
 
 
-def login_tp(driver):
+def login_tp(driver: webdriver.Firefox) -> bool:
     """Perform Transport Pro login with 2FA.
 
     Expects driver is already at the TP login page.

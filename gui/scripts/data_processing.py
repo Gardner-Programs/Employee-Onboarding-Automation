@@ -1,3 +1,7 @@
+"""Load, enrich, and write back onboarding form data from Google Sheets."""
+
+from __future__ import annotations
+
 import os
 import pandas
 from unidecode import unidecode
@@ -49,7 +53,13 @@ for _branch, _tmpl in BRANCH_MAP.items():
     if _tmpl not in VALID_TEMPLATES:
         print(f"WARNING: Branch '{_branch}' maps to template '{_tmpl}' which is missing from VALID_TEMPLATES")
 
-def get_processed_data():
+def get_processed_data() -> list[dict]:
+    """Load the Onboarding Form and return enriched new-hire records.
+
+    Reads the Google Sheet, normalises names/locations, and adds computed
+    fields: Username, State, Terminal, Office Phone, and Template.
+    Returns an empty list when the sheet has no data rows.
+    """
     spreadsheet = get_spreadsheet()
     tp_key = get_tp_key_worksheet(spreadsheet)
 
@@ -226,7 +236,8 @@ def get_processed_data():
 
     return array
 
-def update_onboarding_sheet(array):
+def update_onboarding_sheet(array: list[dict]) -> None:
+    """Write *array* back to the Onboarding Form sheet, stripping computed columns."""
     if not array:
         return
     import pandas

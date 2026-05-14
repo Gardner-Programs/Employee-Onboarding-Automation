@@ -1,3 +1,7 @@
+"""Register phone numbers with the Free Caller Registry via Selenium automation."""
+
+from __future__ import annotations
+
 import os
 import time
 from datetime import datetime, timedelta
@@ -15,7 +19,12 @@ XPATH_CODE_INPUT = "/html/body/div[2]/div/div/div/form/div[2]/section[2]/div/div
 XPATH_CODE_SUBMIT = "/html/body/div[2]/div/div/div/form/div[2]/div/div/button[7]"
 
 
-def numberRegister(numbers):
+def numberRegister(numbers: list[str]) -> None:
+    """Register *numbers* with the Free Caller Registry using browser automation.
+
+    Authenticates via the FCR email verification flow, fills in company details,
+    and submits a batch of phone numbers for registration.
+    """
     with create_driver(url=FCR_URL) as driver:
         now = datetime.now() - timedelta(seconds=30)
         wait_and_type(driver, XPATH_EMAIL_INPUT, os.environ["EMAIL"])

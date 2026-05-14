@@ -71,19 +71,18 @@ Employee-Onboarding-Automation/
 
 ### Configuration
 
-1. Copy your service account key JSON to a `Keys/` folder adjacent to the repo
-2. Create a `.env` file in `Keys/` with:
+1. Copy `.env.example` to `.env` and fill in your values:
+   ```bash
+   cp .env.example .env
    ```
-   ADMIN_EMAIL=admin@company.com
-   DEFAULT_EMP_PASSWORD=YourDefaultPassword
-   ```
-3. In `cli/config.py` or `gui/scripts/config.py`, set `YOUR_SPREADSHEET_KEY_HERE` to your onboarding Google Sheet ID
+2. Place your service account key JSON in a `Keys/` folder adjacent to the repo (or set `KEY_PATH` in `.env` to its absolute path)
+3. In `cli/config.py` or `gui/scripts/config.py`, replace `YOUR_SPREADSHEET_KEY_HERE` with your onboarding Google Sheet ID
 
 ### Running the CLI
 
 ```bash
 cd cli
-pip install -r ../gui/requirements.txt
+pip install -r requirements.txt
 python autoAccounts.py
 ```
 

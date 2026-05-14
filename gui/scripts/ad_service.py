@@ -1,3 +1,7 @@
+"""Active Directory account provisioning via PowerShell for new hires."""
+
+from __future__ import annotations
+
 import subprocess
 import json
 from scripts.config import DEFAULT_PASSWORD
@@ -29,11 +33,13 @@ OU_BRANCH_MAP = {
 }
 
 
-def _ps_escape(val):
+def _ps_escape(val: object) -> str:
+    """Escape a value for safe embedding in a single-quoted PowerShell string."""
     return str(val).replace("'", "''")
 
 
-def _run_ps(command):
+def _run_ps(command: str) -> tuple[str, str, int]:
+    """Run a PowerShell command and return (stdout, stderr, returncode)."""
     result = subprocess.run(
         ["powershell", "-NoProfile", "-Command", command],
         capture_output=True, text=True, timeout=60,
@@ -41,7 +47,7 @@ def _run_ps(command):
     return result.stdout.strip(), result.stderr.strip(), result.returncode
 
 
-def pull_current_users():
+def pull_current_users() -> dict:
     ps_command = (
         "Get-ADUser -Filter 'Enabled -eq $true' "
         "-Properties SamAccountName,UserPrincipalName,Mail,DisplayName,GivenName,Surname "
@@ -79,7 +85,8 @@ def pull_current_users():
     return user_map
 
 
-def _ou_exists(dn):
+def _ou_exists(dn: str) -> bool:
+    """Return True if the given OU distinguished name exists in AD."""
     out, _, _ = _run_ps(
         f"try {{ Get-ADOrganizationalUnit -Identity '{_ps_escape(dn)}' | Out-Null; Write-Output 'EXISTS' }} "
         f"catch {{ Write-Output 'NOT_FOUND' }}"
@@ -87,7 +94,8 @@ def _ou_exists(dn):
     return "EXISTS" in out
 
 
-def _ensure_ou(target_ou):
+def _ensure_ou(target_ou: str) -> bool:
+    """Create the OU chain if it doesn't exist. Returns True on success."""
     if _ou_exists(target_ou):
         return True
 
@@ -130,7 +138,8 @@ def _ensure_ou(target_ou):
     return True
 
 
-def _resolve_manager_dn(manager_email):
+def _resolve_manager_dn(manager_email: str) -> str | None:
+    """Look up manager's AD DistinguishedName by email, or return None if not found."""
     if not manager_email or "@" not in manager_email:
         return None
 
@@ -150,7 +159,8 @@ def _resolve_manager_dn(manager_email):
     return None
 
 
-def makeAD(array):
+def makeAD(array: list[dict]) -> None:
+    """Create Active Directory accounts for new hires that need a server account."""
     if not array:
         print("No users to process.")
         return

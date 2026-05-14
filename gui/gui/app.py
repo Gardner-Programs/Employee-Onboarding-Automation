@@ -9,6 +9,8 @@ Provides a tkinter-based interface that mirrors the CLI menu with:
 - Pause/continue dialog for Selenium interactions
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import re
@@ -17,18 +19,22 @@ import threading
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from datetime import datetime
+from collections.abc import Callable
+from typing import Any
 
 # --- Persist last login email ---
 _SETTINGS_FILE = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "AccountTool_settings.json")
 
-def _load_settings():
+def _load_settings() -> dict[str, Any]:
+    """Load persisted settings from disk, returning an empty dict on failure."""
     try:
         with open(_SETTINGS_FILE) as f:
             return json.load(f)
     except Exception:
         return {}
 
-def _save_settings(settings):
+def _save_settings(settings: dict[str, Any]) -> None:
+    """Persist *settings* to disk, silently ignoring write errors."""
     try:
         with open(_SETTINGS_FILE, "w") as f:
             json.dump(settings, f)
@@ -44,11 +50,11 @@ if _APP_DIR not in sys.path:
 class LogRedirector:
     """Redirects print() output to the GUI log panel."""
 
-    def __init__(self, text_widget, original_stream):
+    def __init__(self, text_widget: scrolledtext.ScrolledText, original_stream: Any) -> None:
         self.text_widget = text_widget
         self.original = original_stream
 
-    def write(self, message):
+    def write(self, message: str) -> None:
         if message.strip():
             timestamp = datetime.now().strftime("%H:%M:%S")
             formatted = f"[{timestamp}] {message.rstrip()}\n"
@@ -62,13 +68,13 @@ class LogRedirector:
         if self.original:
             self.original.write(message)
 
-    def _append(self, text):
+    def _append(self, text: str) -> None:
         self.text_widget.configure(state="normal")
         self.text_widget.insert(tk.END, text)
         self.text_widget.see(tk.END)
         self.text_widget.configure(state="disabled")
 
-    def flush(self):
+    def flush(self) -> None:
         if self.original:
             self.original.flush()
 
@@ -76,17 +82,17 @@ class LogRedirector:
 class PauseDialog:
     """Thread-safe dialog that blocks a worker thread until the user clicks Continue."""
 
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self._event = threading.Event()
 
-    def show(self, message):
+    def show(self, message: str) -> None:
         """Called from worker thread. Blocks until user clicks Continue."""
         self._event.clear()
         self.root.after(0, self._create_dialog, message)
         self._event.wait()
 
-    def _create_dialog(self, message):
+    def _create_dialog(self, message: str) -> None:
         dialog = tk.Toplevel(self.root)
         dialog.title("Action Required")
         dialog.geometry("450x180")
@@ -110,7 +116,7 @@ class PauseDialog:
         btn.focus_set()
         dialog.bind("<Return>", lambda e: self._on_continue(dialog))
 
-    def _on_continue(self, dialog):
+    def _on_continue(self, dialog: tk.Toplevel) -> None:
         dialog.destroy()
         self._event.set()
 
@@ -130,7 +136,7 @@ class AccountCreationApp:
     ERROR_COLOR = "#ef4444"
     LOG_BG = "#0f0f1a"
 
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("Account Creation Tool")
         self.root.geometry("920x750")
@@ -138,7 +144,7 @@ class AccountCreationApp:
         self.root.configure(bg=self.BG_COLOR)
 
         # State
-        self.array = []
+        self.array: list[dict] = []
         self.is_running = False
         self._pause_dialog = PauseDialog(root)
 
@@ -163,7 +169,7 @@ class AccountCreationApp:
         self._set_buttons_state("disabled")
         self.login_btn.configure(state="normal")
 
-    def _setup_styles(self):
+    def _setup_styles(self) -> None:
         style = ttk.Style()
         style.theme_use("clam")
 
@@ -221,7 +227,7 @@ class AccountCreationApp:
                         foreground=self.MUTED_COLOR,
                         font=("Segoe UI", 8))
 
-    def _build_header(self):
+    def _build_header(self) -> None:
         header = ttk.Frame(self.root, style="App.TFrame")
         header.pack(fill=tk.X, padx=20, pady=(15, 5))
 
@@ -245,7 +251,7 @@ class AccountCreationApp:
                                     style="Accent.TButton", command=self._on_login)
         self.login_btn.pack(side=tk.LEFT)
 
-    def _build_records_panel(self):
+    def _build_records_panel(self) -> None:
         panel = ttk.Frame(self.root, style="Panel.TFrame")
         panel.pack(fill=tk.X, padx=20, pady=(10, 5))
 
@@ -265,7 +271,7 @@ class AccountCreationApp:
                                 style="Service.TButton", command=self._on_reload)
         reload_btn.pack(side=tk.RIGHT, padx=(0, 15))
 
-    def _build_service_buttons(self):
+    def _build_service_buttons(self) -> None:
         container = ttk.Frame(self.root, style="App.TFrame")
         container.pack(fill=tk.X, padx=20, pady=5)
 
@@ -293,14 +299,14 @@ class AccountCreationApp:
             ("Clear All Sessions", "clear_sessions"),
         ]
 
-        self.service_buttons = {}
+        self.service_buttons: dict[str, ttk.Button] = {}
         for i, (label, key) in enumerate(services):
             btn = ttk.Button(grid, text=label, style="Service.TButton",
                              command=lambda k=key: self._run_task(k))
             btn.grid(row=i // 2, column=i % 2, padx=3, pady=3, sticky="ew")
             self.service_buttons[key] = btn
 
-    def _build_log_panel(self):
+    def _build_log_panel(self) -> None:
         log_frame = ttk.Frame(self.root, style="App.TFrame")
         log_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(5, 5))
 
@@ -321,7 +327,7 @@ class AccountCreationApp:
         )
         self.log_text.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
 
-    def _build_status_bar(self):
+    def _build_status_bar(self) -> None:
         bar = ttk.Frame(self.root, style="StatusBar.TFrame")
         bar.pack(fill=tk.X, padx=0, pady=0)
 
@@ -334,24 +340,24 @@ class AccountCreationApp:
         self.session_info = ttk.Label(inner, text="", style="StatusBar.TLabel")
         self.session_info.pack(side=tk.RIGHT)
 
-    def _clear_log(self):
+    def _clear_log(self) -> None:
         self.log_text.configure(state="normal")
         self.log_text.delete(1.0, tk.END)
         self.log_text.configure(state="disabled")
 
-    def _set_status(self, text, color=None):
+    def _set_status(self, text: str, color: str | None = None) -> None:
         self.status_text.configure(text=text)
         if color:
             self.status_text.configure(foreground=color)
 
-    def _set_buttons_state(self, state):
+    def _set_buttons_state(self, state: str) -> None:
         """Enable or disable all service buttons."""
         for btn in self.service_buttons.values():
             btn.configure(state=state)
         self.run_all_btn.configure(state=state)
         self.login_btn.configure(state=state)
 
-    def _update_records_display(self):
+    def _update_records_display(self) -> None:
         if self.array:
             names = [f"{u.get('Preferred First Name', '')} {u.get('Preferred Last Name', '')}" for u in self.array]
             self.records_label.configure(
@@ -360,7 +366,7 @@ class AccountCreationApp:
         else:
             self.records_label.configure(text="No records loaded")
 
-    def _update_session_display(self):
+    def _update_session_display(self) -> None:
         from scripts.session_manager import session_status
         parts = []
         for svc, label in [("8x8", "8x8"), ("tp", "TP"), ("fcr", "FCR")]:
@@ -374,7 +380,7 @@ class AccountCreationApp:
 
     # --- Actions ---
 
-    def _on_login(self):
+    def _on_login(self) -> None:
         email = self.email_var.get().strip()
         if not email or "@" not in email:
             messagebox.showwarning("Invalid Email", "Please enter a valid @company.com email address.")
@@ -391,10 +397,10 @@ class AccountCreationApp:
         # Load data
         self._on_reload()
 
-    def _on_reload(self):
+    def _on_reload(self) -> None:
         self._run_task("reload")
 
-    def _setup_pause_callbacks(self):
+    def _setup_pause_callbacks(self) -> None:
         """Wire up the pause dialog to services that need user interaction."""
         try:
             from scripts.utils import set_pause_callback as set_utils_pause
@@ -412,7 +418,7 @@ class AccountCreationApp:
         except ImportError:
             pass
 
-    def _run_task(self, task_key):
+    def _run_task(self, task_key: str) -> None:
         """Run a task in a background thread to keep GUI responsive."""
         if self.is_running and task_key != "clear_sessions":
             messagebox.showinfo("Busy", "A task is already running. Please wait.")
@@ -425,7 +431,7 @@ class AccountCreationApp:
         thread = threading.Thread(target=self._execute_task, args=(task_key,), daemon=True)
         thread.start()
 
-    def _execute_task(self, task_key):
+    def _execute_task(self, task_key: str) -> None:
         """Execute a task (runs in worker thread)."""
         try:
             if task_key == "reload":
@@ -445,7 +451,7 @@ class AccountCreationApp:
                 from scripts.tpp_service import makeTPP
                 from scripts.ad_service import makeAD
 
-                steps = [
+                steps: list[tuple[str, Callable[[list[dict]], None]]] = [
                     ("Login Sheets", makeLoginSheets),
                     ("Gmail", makeGmail),
                     ("8x8", make8x8),
@@ -520,7 +526,7 @@ class AccountCreationApp:
             self.root.after(0, self._set_status, "Ready", self.MUTED_COLOR)
             self.root.after(0, self._update_session_display)
 
-    def _run_notify(self):
+    def _run_notify(self) -> None:
         if not self.array:
             print("No users to notify HR about.")
             return
@@ -546,9 +552,9 @@ class AccountCreationApp:
         sendEmail(sendTo, "New Hire Accounts", email_body)
         print("Notification email sent successfully.")
 
-    def _run_fcr(self):
+    def _run_fcr(self) -> None:
         """Prompt for phone numbers via a dialog, then register."""
-        self._fcr_numbers = None
+        self._fcr_numbers: list[str] | None = None
         self._fcr_event = threading.Event()
         self.root.after(0, self._show_fcr_dialog)
         self._fcr_event.wait()
@@ -561,7 +567,7 @@ class AccountCreationApp:
         else:
             print("No numbers entered.")
 
-    def _show_fcr_dialog(self):
+    def _show_fcr_dialog(self) -> None:
         dialog = tk.Toplevel(self.root)
         dialog.title("Register Numbers - Free Caller Registry")
         dialog.geometry("450x300")
@@ -584,14 +590,14 @@ class AccountCreationApp:
             for user in self.array if user.get("Direct Line")
         ]
 
-        def use_loaded():
+        def use_loaded() -> None:
             if loaded_numbers:
                 text.delete("1.0", tk.END)
                 text.insert("1.0", "\n".join(loaded_numbers))
             else:
                 messagebox.showinfo("No Numbers", "No Direct Line numbers found in loaded records.")
 
-        def submit():
+        def submit() -> None:
             raw = text.get("1.0", tk.END)
             numbers = []
             for line in raw.split("\n"):
@@ -603,7 +609,7 @@ class AccountCreationApp:
             dialog.destroy()
             self._fcr_event.set()
 
-        def cancel():
+        def cancel() -> None:
             self._fcr_numbers = None
             dialog.destroy()
             self._fcr_event.set()
@@ -619,7 +625,7 @@ class AccountCreationApp:
         dialog.protocol("WM_DELETE_WINDOW", cancel)
 
 
-def launch():
+def launch() -> None:
     """Entry point to launch the GUI application."""
     root = tk.Tk()
     app = AccountCreationApp(root)

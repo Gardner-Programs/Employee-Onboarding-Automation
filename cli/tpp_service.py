@@ -1,3 +1,7 @@
+"""Create Transport Pro (TPP) user accounts via Selenium browser automation."""
+
+from __future__ import annotations
+
 import os
 import re
 import time
@@ -39,16 +43,21 @@ MAINTENANCE_MAP = {
 MAINTENANCE_DEFAULT = "2"
 
 
-def _strip_terminal_name(name):
-    """Strip number prefix and 'Office' suffix for fuzzy matching."""
+def _strip_terminal_name(name: str) -> str:
+    """Strip leading number prefix and trailing 'Office' suffix for fuzzy matching."""
     name = name.lstrip("-").strip()
     name = re.sub(r'^\d+\s*-\s*', '', name)
     name = re.sub(r'\s+Office$', '', name, flags=re.IGNORECASE)
     return name.strip().lower()
 
 
-def get_terminals(html_string):
-    """Parse the terminal dropdown from TPP page source."""
+def get_terminals(html_string: str) -> tuple[dict, dict]:
+    """Parse the terminal hierarchy from TPP page source and sync it to the TP Key sheet.
+
+    Returns:
+        A (hierarchy, flat_lookup) pair where *hierarchy* maps parent terminal IDs to
+        ``{"name": str, "children": [id, ...]}`` and *flat_lookup* maps every ID to its name.
+    """
     spreadsheet = get_spreadsheet()
     tp_key = get_tp_key_worksheet(spreadsheet)
     soup = BeautifulSoup(html_string, 'html.parser')
@@ -85,8 +94,12 @@ def get_terminals(html_string):
     return hierarchy, flat_lookup
 
 
-def _match_office_to_parent(reporting_branch, hierarchy, flat_lookup):
-    """Fuzzy match a reporting branch name to a parent terminal."""
+def _match_office_to_parent(
+    reporting_branch: str,
+    hierarchy: dict,
+    flat_lookup: dict,
+) -> tuple[str | None, list[str]]:
+    """Fuzzy-match *reporting_branch* to a parent terminal and return (parent_id, all_child_ids)."""
     search = reporting_branch.lower().strip()
 
     best_match = None
@@ -119,8 +132,13 @@ def _match_office_to_parent(reporting_branch, hierarchy, flat_lookup):
     return None, []
 
 
-def _find_best_sub_terminal(reporting_branch, parent_id, hierarchy, flat_lookup):
-    """Find the best matching sub-terminal (child) for a reporting branch."""
+def _find_best_sub_terminal(
+    reporting_branch: str,
+    parent_id: str,
+    hierarchy: dict,
+    flat_lookup: dict,
+) -> str | None:
+    """Return the best-matching child terminal ID for *reporting_branch* under *parent_id*."""
     children = hierarchy.get(parent_id, {}).get("children", [])
     if not children:
         return None
@@ -142,8 +160,8 @@ def _find_best_sub_terminal(reporting_branch, parent_id, hierarchy, flat_lookup)
     return best_child if best_child else children[0]
 
 
-def _find_fw_parent(hierarchy):
-    """Find the headquarters parent terminal ID."""
+def _find_fw_parent(hierarchy: dict) -> tuple[str | None, list[str]]:
+    """Return (hq_parent_id, all_child_ids) for the headquarters (Fort Wayne) terminal group."""
     for parent_id, info in hierarchy.items():
         stripped = _strip_terminal_name(info["name"])
         if "fort wayne" in stripped:
@@ -151,7 +169,8 @@ def _find_fw_parent(hierarchy):
     return None, []
 
 
-def makeTPP(array):
+def makeTPP(array: list[dict]) -> None:
+    """Create Transport Pro accounts for all users in *array* via browser automation."""
     with create_driver(url=TPP_URL) as driver:
         if not login_tp(driver):
             return

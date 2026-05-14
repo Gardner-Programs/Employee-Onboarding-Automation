@@ -1,0 +1,27 @@
+# Credentials — never commit these
+*.json
+.env
+Keys/
+
+# Selenium session cookies
+sessions/
+
+# Generated output — keep the folder, ignore contents
+output/*
+!output/.gitkeep
+
+# PyInstaller build artifacts
+dist/
+build/
+*.spec
+*.exe
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.env.*
+!.env.example
