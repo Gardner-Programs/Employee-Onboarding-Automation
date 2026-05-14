@@ -6,6 +6,8 @@ if the app crashes or restarts, users don't have to re-authenticate
 through 2FA every time.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import pickle
@@ -39,7 +41,7 @@ def _meta_path(service_name: str) -> str:
     return os.path.join(_SESSION_DIR, f"{service_name}_meta.pkl")
 
 
-def save_session(driver, service_name: str):
+def save_session(driver: object, service_name: str) -> None:
     """Save browser cookies and timestamp for a service after successful login."""
     os.makedirs(_SESSION_DIR, exist_ok=True)
     cookies = driver.get_cookies()
@@ -49,7 +51,7 @@ def save_session(driver, service_name: str):
         pickle.dump({"saved_at": datetime.now(), "url": driver.current_url}, f)
 
 
-def load_session(driver, service_name: str, base_url: str) -> bool:
+def load_session(driver: object, service_name: str, base_url: str) -> bool:
     """Attempt to restore cookies for a service.
 
     Args:
@@ -101,14 +103,14 @@ def load_session(driver, service_name: str, base_url: str) -> bool:
         return False
 
 
-def clear_session(service_name: str):
+def clear_session(service_name: str) -> None:
     """Remove cached session files for a service."""
     for path in [_session_path(service_name), _meta_path(service_name)]:
         if os.path.exists(path):
             os.remove(path)
 
 
-def clear_all_sessions():
+def clear_all_sessions() -> None:
     """Remove all cached sessions."""
     for svc in ["8x8", "tp", "fcr"]:
         clear_session(svc)

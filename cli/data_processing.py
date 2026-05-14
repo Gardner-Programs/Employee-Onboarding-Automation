@@ -1,3 +1,13 @@
+"""
+Load, enrich, and write back onboarding form data from Google Sheets.
+
+get_processed_data() reads the Onboarding Form and TP Key sheets, then
+enriches each row with a generated username, region, terminal ID, office
+phone, and email signature template key before returning the final list.
+"""
+
+from __future__ import annotations
+
 import os
 import sys
 import pandas
@@ -54,7 +64,13 @@ HQ_PARENT_TERMINAL_ID = os.environ.get("HQ_PARENT_TERMINAL_ID", "YOUR_PARENT_TER
 HQ_ADMIN_FALLBACK_ID = os.environ.get("HQ_ADMIN_FALLBACK_ID", "YOUR_FALLBACK_TERMINAL_ID")
 
 
-def get_processed_data():
+def get_processed_data() -> list[dict]:
+    """Load the Onboarding Form and return enriched new-hire records.
+
+    Reads the Google Sheet, normalises names/locations, and adds computed
+    fields: Username, State, Terminal, Office Phone, and Template.
+    Returns an empty list when the sheet has no data rows.
+    """
     spreadsheet = get_spreadsheet()
     tp_key = get_tp_key_worksheet(spreadsheet)
 
@@ -245,7 +261,8 @@ def get_processed_data():
 
     return array
 
-def update_onboarding_sheet(array):
+def update_onboarding_sheet(array: list[dict]) -> None:
+    """Write *array* back to the Onboarding Form sheet, stripping computed columns."""
     if not array:
         return
     import pandas

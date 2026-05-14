@@ -1,11 +1,16 @@
+"""8x8 PBX account provisioning via browser automation for new hires."""
+
+from __future__ import annotations
+
+import io
 import os
 import time
 import pandas
-import io
 import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver import Firefox
 
 from config import (
     create_driver, get_firefox_service_and_options,
@@ -59,7 +64,8 @@ LICENSE_NAME = "X Series - X2-VOSVC0216-02-US"
 FCR_BATCH_SIZE = 20
 
 
-def get_number_report(driver):
+def get_number_report(driver: Firefox) -> tuple[list[str], list[str]] | tuple[None, None]:
+    """Download the 8x8 number report via API and return (available_numbers, available_extensions)."""
 	print("Capturing session cookies...")
 	selenium_cookies = driver.get_cookies()
 
@@ -120,7 +126,8 @@ def get_number_report(driver):
 	return phone_numbers, formatted_available_list
 
 
-def assign_numbers(office, available_numbers, available_extensions):
+def assign_numbers(office: str, available_numbers: list[str], available_extensions: list[str]) -> tuple[str, str]:
+    """Pop and return the best (extension, phone_number) pair for *office* from the available pools."""
 	extension = ""
 	number = ""
 
@@ -145,7 +152,8 @@ def assign_numbers(office, available_numbers, available_extensions):
 	return extension, number
 
 
-def make8x8(array):
+def make8x8(array: list[dict]) -> None:
+    """Create 8x8 PBX extensions for all users in *array* that don't already have an extension."""
 	with create_driver(url=USERS_URL) as driver:
 		if not login_8x8(driver):
 			return

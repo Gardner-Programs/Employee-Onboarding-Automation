@@ -1,6 +1,11 @@
+"""Shared configuration: Firefox WebDriver setup, Selenium helpers, and Google Sheets access."""
+
+from __future__ import annotations
+
 import os
 import gspread
 from contextlib import contextmanager
+from typing import Generator
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,7 +21,8 @@ DEFAULT_PASSWORD = os.environ["DEFAULT_EMP_PASSWORD"]
 
 # --- WebDriver Setup ---
 
-def get_firefox_service_and_options(headless=False):
+def get_firefox_service_and_options(headless: bool = False) -> tuple:
+    """Return a configured (FirefoxService, FirefoxOptions) pair."""
     firefox_service = FirefoxService()
     firefox_options = FirefoxOptions()
     firefox_options.add_argument("-profile")
@@ -27,12 +33,18 @@ def get_firefox_service_and_options(headless=False):
 
 
 @contextmanager
-def create_driver(headless=False, url=None):
-    """Context manager that creates a Firefox driver and guarantees cleanup.
+def create_driver(
+    headless: bool = False,
+    url: str | None = None,
+) -> Generator[webdriver.Firefox, None, None]:
+    """Context manager that creates a Firefox WebDriver and guarantees cleanup.
 
-    Usage:
-        with create_driver(url="https://example.com") as driver:
-            driver.find_element(...)
+    Args:
+        headless: Run Firefox in headless mode (no visible window).
+        url: Optional URL to navigate to immediately after launch.
+
+    Yields:
+        A fully initialised ``webdriver.Firefox`` instance.
     """
     service, options = get_firefox_service_and_options(headless=headless)
     driver = webdriver.Firefox(service=service, options=options)
@@ -47,8 +59,8 @@ def create_driver(headless=False, url=None):
 
 # --- Standardized Selenium Wait Helpers ---
 
-def wait_and_click(driver, xpath, timeout=20):
-    """Wait for element to be clickable, then click it."""
+def wait_and_click(driver: webdriver.Firefox, xpath: str, timeout: int = 20):
+    """Wait for *xpath* to be clickable, click it, and return the element."""
     element = WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.XPATH, xpath))
     )
@@ -56,8 +68,8 @@ def wait_and_click(driver, xpath, timeout=20):
     return element
 
 
-def wait_and_type(driver, xpath, text, timeout=20):
-    """Wait for element to be present, then type into it."""
+def wait_and_type(driver: webdriver.Firefox, xpath: str, text: str, timeout: int = 20):
+    """Wait for *xpath* to be present in the DOM, send *text* to it, and return the element."""
     element = WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.XPATH, xpath))
     )
@@ -65,22 +77,22 @@ def wait_and_type(driver, xpath, text, timeout=20):
     return element
 
 
-def wait_visible(driver, xpath, timeout=20):
-    """Wait for element to be visible and return it."""
+def wait_visible(driver: webdriver.Firefox, xpath: str, timeout: int = 20):
+    """Wait for *xpath* to be visible and return the element."""
     return WebDriverWait(driver, timeout).until(
         EC.visibility_of_element_located((By.XPATH, xpath))
     )
 
 
-def wait_present(driver, xpath, timeout=20):
-    """Wait for element to be present in DOM and return it."""
+def wait_present(driver: webdriver.Firefox, xpath: str, timeout: int = 20):
+    """Wait for *xpath* to be present in the DOM and return the element."""
     return WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.XPATH, xpath))
     )
 
 
-def wait_clickable(driver, xpath, timeout=20):
-    """Wait for element to be clickable and return it (without clicking)."""
+def wait_clickable(driver: webdriver.Firefox, xpath: str, timeout: int = 20):
+    """Wait for *xpath* to be clickable and return it (without clicking)."""
     return WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.XPATH, xpath))
     )
@@ -88,18 +100,21 @@ def wait_clickable(driver, xpath, timeout=20):
 
 # --- Google Sheets ---
 
-def get_spreadsheet():
+def get_spreadsheet() -> gspread.Spreadsheet:
+    """Return the main onboarding spreadsheet using service-account credentials."""
     gc = gspread.authorize(sheets_credentials())
     return gc.open_by_key("YOUR_SPREADSHEET_KEY_HERE")
 
 
-def get_tp_key_worksheet(spreadsheet=None):
+def get_tp_key_worksheet(spreadsheet: gspread.Spreadsheet | None = None) -> gspread.Worksheet:
+    """Return the 'TP Key' worksheet, opening the spreadsheet if not provided."""
     if not spreadsheet:
         spreadsheet = get_spreadsheet()
     return spreadsheet.worksheet("TP Key")
 
 
-def get_onboarding_worksheet(spreadsheet=None):
+def get_onboarding_worksheet(spreadsheet: gspread.Spreadsheet | None = None) -> gspread.Worksheet:
+    """Return the 'Onboarding Form' worksheet, opening the spreadsheet if not provided."""
     if not spreadsheet:
         spreadsheet = get_spreadsheet()
     return spreadsheet.worksheet("Onboarding Form")
