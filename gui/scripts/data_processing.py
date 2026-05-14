@@ -41,6 +41,10 @@ BRANCH_MAP = {
 }
 BRANCH_MAP_DEFAULT = "branch_a"
 
+# Set these in environment variables or replace with your actual Transport Pro terminal IDs
+HQ_PARENT_TERMINAL_ID = os.environ.get("HQ_PARENT_TERMINAL_ID", "YOUR_PARENT_TERMINAL_ID")
+HQ_ADMIN_FALLBACK_ID = os.environ.get("HQ_ADMIN_FALLBACK_ID", "YOUR_FALLBACK_TERMINAL_ID")
+
 for _branch, _tmpl in BRANCH_MAP.items():
     if _tmpl not in VALID_TEMPLATES:
         print(f"WARNING: Branch '{_branch}' maps to template '{_tmpl}' which is missing from VALID_TEMPLATES")
@@ -158,14 +162,14 @@ def get_processed_data():
                             found_terminal_id = term["id"]
                             break
 
-            if found_terminal_id == "" or found_terminal_id == "1003":
+            if found_terminal_id == "" or found_terminal_id == HQ_PARENT_TERMINAL_ID:
                 target_terminal_name = "ADMIN"
                 for term in tp_terminals:
                     if "admin" in str(term["name"]).lower() and "ap only" in str(term["name"]).lower():
                         found_terminal_id = term["id"]
                         break
                 if found_terminal_id == "":
-                    found_terminal_id = "1071"
+                    found_terminal_id = HQ_ADMIN_FALLBACK_ID
         else:
             for term in tp_terminals:
                 if search_term in str(term["name"]).lower():
@@ -174,17 +178,11 @@ def get_processed_data():
 
         row["Terminal"] = found_terminal_id
 
+        # Maps Transport Pro terminal IDs to direct-dial office phone numbers.
+        # Update these with your actual terminal ID -> phone number pairs.
         phone_map = {
-            "1057": "4805060355",
-            "1065": "4805060355",
-            "1015": "3123007447",
-            "1029": "3133346600",
-            "1035": "2609180254",
-            "1107": "3133853745",
-            "1126": "2602046180",
-            "1069": "3123007447",
-            "1068": "3123007447",
-            "1129": "3123007447"
+            "YOUR_TERMINAL_ID_1": "5550000001",
+            "YOUR_TERMINAL_ID_2": "5550000002",
         }
         row["Office Phone"] = phone_map.get(str(row["Terminal"]), "5550000000")
 

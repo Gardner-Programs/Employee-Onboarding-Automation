@@ -16,7 +16,9 @@ from fcr_service import numberRegister
 from data_processing import update_onboarding_sheet
 
 # --- Constants ---
-RING_GROUPS = {1024,1051,1057,1061,1066,1085,1092,1100,1111,1313,1114,1036,1121,1200,1205,1207,1243,1300,1301,1555,1592,1593,1594,1595,1900,1974,1995,2000,2001,2003,2004,2006,2007,2012,2017,2019,2020,2023,2024,2200,6000,9000,9444}
+# Extension numbers reserved for ring/hunt groups — new users are never assigned
+# an extension from this set. Replace with your actual 8x8 ring group IDs.
+RING_GROUPS = {1001, 1002, 1003}  # example IDs — update with your ring groups
 
 DEFAULT_EXT_RANGE = (1000, 1999)
 OFFICE_EXT_RANGES = {
