@@ -1,3 +1,7 @@
+"""Google Workspace account creation and profile update for new hires."""
+
+from __future__ import annotations
+
 import os
 import base64
 from authenticator import admin_directory_v1_api
@@ -5,7 +9,9 @@ from googleapiclient.errors import HttpError
 from config import DEFAULT_PASSWORD
 from utils import display_office_name
 
-def get_org_unit(service, branch_name):
+
+def get_org_unit(service, branch_name: str) -> str:
+    """Return the org-unit path for *branch_name*, creating it under /All Sites if missing."""
     if not branch_name:
         return "/"
     try:
@@ -29,7 +35,8 @@ def get_org_unit(service, branch_name):
         print(f"Warning: Could not resolve org unit for '{branch_name}'. Defaulting to root (/). Error: {e}")
         return "/"
 
-def makeGmail(array):
+def makeGmail(array: list[dict]) -> None:
+    """Create Google Workspace accounts for all users in *array*."""
     service = admin_directory_v1_api()
     for user in array:
         branch = user.get("Reporting Branch", "")
@@ -55,7 +62,8 @@ def makeGmail(array):
             err = str(e._get_reason())
             print("Error with " + username + " " + err)
 
-def updateUserInfo(array):
+def updateUserInfo(array: list[dict]) -> None:
+    """Update profile fields, Signature_Info schema, group memberships, and photo for all users."""
     service = admin_directory_v1_api()
     for user in array:
         try:

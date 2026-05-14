@@ -1,7 +1,12 @@
+"""CLI orchestrator: interactive menu for running new-hire onboarding flows."""
+
+from __future__ import annotations
+
 import os
 import re
 import sys
 import time
+from collections.abc import Callable
 from data_processing import get_processed_data, update_onboarding_sheet
 from utils import sendEmail
 from gmail_service import makeGmail, updateUserInfo
@@ -12,15 +17,18 @@ from ad_service import makeAD
 from fcr_service import numberRegister
 
 
-def clear_screen():
+def clear_screen() -> None:
+    """Clear the terminal screen."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def pause():
+def pause() -> None:
+    """Wait for the user to press a key before continuing."""
     os.system("pause")
 
 
-def notify(array):
+def notify(array: list[dict]) -> None:
+    """Send a new-hire notification email to HR/QC for all users in *array*."""
     if not array:
         print("No users to notify HR about.")
         return
@@ -46,7 +54,8 @@ def notify(array):
     print("Notification email sent successfully.")
 
 
-def fcr_prompt():
+def fcr_prompt() -> None:
+    """Interactively collect phone numbers and register them via FCR."""
     print("Enter phone numbers to register (comma-separated, or one per line).")
     print("Press Enter twice when done:")
     numbers = []
@@ -66,7 +75,8 @@ def fcr_prompt():
         print("No numbers entered.")
 
 
-def run_service(name, func, array):
+def run_service(name: str, func: Callable[[list[dict]], None], array: list[dict]) -> None:
+    """Call *func(array)* and print a success or failure message for *name*."""
     if not array:
         print("No users to process!")
         return
@@ -104,7 +114,8 @@ RUN_ALL_STEPS = [
 ]
 
 
-def print_menu(array):
+def print_menu(array: list[dict]) -> None:
+    """Render the main menu, listing loaded users and available actions."""
     clear_screen()
     print("=" * 60)
     print(" " * 15 + "AUTO ACCOUNTS ORCHESTRATOR")
@@ -125,7 +136,8 @@ def print_menu(array):
     print("=" * 60)
 
 
-def start():
+def start() -> None:
+    """Load onboarding data and enter the interactive menu loop."""
     array = []
     print("Loading data...")
     try:

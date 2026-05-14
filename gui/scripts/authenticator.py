@@ -7,6 +7,8 @@ Other admins need:
   - Their @company.com email set as ADMIN_EMAIL in .env or at login
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import requests
@@ -57,7 +59,7 @@ _KEYS_SEARCH_DIRS = [
     ] if d
 ]
 
-def _find_file(filename):
+def _find_file(filename: str) -> str:
     """Search known directories for a file."""
     for d in _KEYS_SEARCH_DIRS:
         path = os.path.join(d, filename)
@@ -91,7 +93,7 @@ else:
 _admin_email = os.environ.get("ADMIN_EMAIL", os.environ.get("EMAIL", ""))
 
 
-def set_admin_email(email: str):
+def set_admin_email(email: str) -> None:
     """Set the admin email used for API delegation. Called from GUI login."""
     global _admin_email
     _admin_email = email
@@ -101,14 +103,15 @@ def get_admin_email() -> str:
     return _admin_email
 
 
-def _default_user(user: str = None) -> str:
+def _default_user(user: str | None = None) -> str:
     """Return explicit user or fall back to configured admin email."""
     return user or _admin_email
 
 
 # --- Google API Builders ---
 
-def sheets_credentials():
+def sheets_credentials() -> service_account.Credentials:
+    """Return service-account credentials scoped for Sheets and Drive."""
     credentials = service_account.Credentials.from_service_account_file(
         key_path,
         scopes=[
@@ -120,7 +123,8 @@ def sheets_credentials():
     return credentials
 
 
-def gmail_v1_api(user: str = None):
+def gmail_v1_api(user: str | None = None) -> object:
+    """Return a delegated Gmail v1 API service for *user* (defaults to admin)."""
     user = _default_user(user)
     scopes = [
         "https://www.googleapis.com/auth/gmail.readonly",
@@ -134,7 +138,8 @@ def gmail_v1_api(user: str = None):
     return build("gmail", "v1", credentials=credentials_delegated, cache_discovery=False)
 
 
-def admin_directory_v1_api(user: str = None):
+def admin_directory_v1_api(user: str | None = None) -> object:
+    """Return a delegated Admin Directory v1 API service for *user*."""
     user = _default_user(user)
     scopes = [
         "https://www.googleapis.com/auth/admin.directory.user",
@@ -149,7 +154,8 @@ def admin_directory_v1_api(user: str = None):
     return build("admin", "directory_v1", credentials=credentials_delegated, cache_discovery=False)
 
 
-def drive_v3_api(user: str = None):
+def drive_v3_api(user: str | None = None) -> object:
+    """Return a delegated Drive v3 API service for *user*."""
     user = _default_user(user)
     scopes = [
         "https://www.googleapis.com/auth/drive",
@@ -160,7 +166,8 @@ def drive_v3_api(user: str = None):
     return build("drive", "v3", credentials=credentials_delegated, cache_discovery=False)
 
 
-def drive_v2_api(user: str = None):
+def drive_v2_api(user: str | None = None) -> object:
+    """Return a delegated Drive v2 API service for *user*."""
     user = _default_user(user)
     scopes = [
         "https://www.googleapis.com/auth/drive",
@@ -171,7 +178,8 @@ def drive_v2_api(user: str = None):
     return build("drive", "v2", credentials=credentials_delegated, cache_discovery=False)
 
 
-def calendar_v3_api(user: str = None):
+def calendar_v3_api(user: str | None = None) -> object:
+    """Return a delegated Calendar v3 API service for *user*."""
     user = _default_user(user)
     credentials = service_account.Credentials.from_service_account_file(
         key_path, scopes=["https://www.googleapis.com/auth/calendar"]
@@ -180,7 +188,8 @@ def calendar_v3_api(user: str = None):
     return build("calendar", "v3", credentials=credentials_delegated, cache_discovery=False)
 
 
-def cloud_identity_v1_api(user: str = None):
+def cloud_identity_v1_api(user: str | None = None) -> object:
+    """Return a delegated Cloud Identity v1 API service for *user*."""
     user = _default_user(user)
     credentials = service_account.Credentials.from_service_account_file(
         key_path, scopes=["https://www.googleapis.com/auth/cloud-identity.devices.readonly"]
@@ -189,7 +198,8 @@ def cloud_identity_v1_api(user: str = None):
     return build("cloudidentity", "v1", credentials=credentials_delegated, cache_discovery=False)
 
 
-def custom_api_build(service_name: str, version: str, scopes: list, user: str = None):
+def custom_api_build(service_name: str, version: str, scopes: list[str], user: str | None = None) -> object:
+    """Return a delegated API service built from *service_name* and *version* with *scopes*."""
     user = _default_user(user)
     credentials = service_account.Credentials.from_service_account_file(key_path, scopes=scopes)
     credentials_delegated = credentials.with_subject(user)
@@ -197,7 +207,9 @@ def custom_api_build(service_name: str, version: str, scopes: list, user: str = 
 
 
 class GmailBatchAuthenticator:
-    def __init__(self):
+    """Reuses a single Gmail discovery doc to build per-user delegated services efficiently."""
+
+    def __init__(self) -> None:
         self.base_creds = service_account.Credentials.from_service_account_file(
             key_path,
             scopes=[
@@ -211,6 +223,7 @@ class GmailBatchAuthenticator:
         response = requests.get("https://gmail.googleapis.com/$discovery/rest?version=v1")
         self.discovery_doc = response.json()
 
-    def get_service(self, user_email):
+    def get_service(self, user_email: str) -> object:
+        """Return a per-user Gmail service built from the cached discovery document."""
         delegated_creds = self.base_creds.with_subject(user_email)
         return build_from_document(self.discovery_doc, credentials=delegated_creds)

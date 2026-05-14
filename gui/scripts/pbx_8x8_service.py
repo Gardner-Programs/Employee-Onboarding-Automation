@@ -1,11 +1,16 @@
+"""8x8 PBX account provisioning via browser automation for new hires."""
+
+from __future__ import annotations
+
+import io
 import os
 import time
 import pandas
-import io
 import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver import Chrome
 
 from scripts.config import (
     create_driver,
@@ -60,21 +65,20 @@ FCR_BATCH_SIZE = 20
 # Callback for GUI interaction (replaces os.system("pause"))
 _pause_callback = None
 
-def set_pause_callback(callback):
-    """Set a callback function for when user interaction is needed.
-    The callback receives a message string and should block until the user acknowledges.
-    """
+def set_pause_callback(callback: object) -> None:
+    """Register *callback* to be invoked when a Selenium flow needs user interaction."""
     global _pause_callback
     _pause_callback = callback
 
-def _pause(message="Press continue to proceed..."):
+def _pause(message: str = "Press continue to proceed...") -> None:
     if _pause_callback:
         _pause_callback(message)
     else:
         print(f"PAUSE: {message} (no GUI callback set, continuing automatically)")
 
 
-def get_number_report(driver):
+def get_number_report(driver: Chrome) -> tuple[list, list] | tuple[None, None]:
+    """Download the 8x8 number report via API and return (available_numbers, available_extensions)."""
     print("Capturing session cookies...")
     selenium_cookies = driver.get_cookies()
 
@@ -135,7 +139,8 @@ def get_number_report(driver):
     return phone_numbers, formatted_available_list
 
 
-def assign_numbers(office, available_numbers, available_extensions):
+def assign_numbers(office: str, available_numbers: list, available_extensions: list) -> tuple[str, str]:
+    """Pop and return the best (extension, phone_number) pair for *office* from the available pools."""
     extension = ""
     number = ""
 
@@ -160,7 +165,8 @@ def assign_numbers(office, available_numbers, available_extensions):
     return extension, number
 
 
-def make8x8(array):
+def make8x8(array: list[dict]) -> None:
+    """Create 8x8 PBX extensions for all users in *array* that don't have one yet."""
     with create_driver(url=USERS_URL) as driver:
         if not login_8x8(driver):
             return
