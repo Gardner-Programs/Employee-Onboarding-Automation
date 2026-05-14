@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from customScripts.authenticator import sheets_credentials
+from authenticator import sheets_credentials
 
 # --- Global Constants ---
 PROFILE_PATH = r"C:\Users\your_username\AppData\Roaming\Mozilla\Firefox\Profiles\selenium_profile"

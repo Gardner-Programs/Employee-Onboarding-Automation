@@ -1,6 +1,6 @@
 """
 Local authenticator module for Account Creation GUI.
-Clone of customScripts.authenticator with configurable admin user.
+Authentication helper module with configurable admin user.
 
 Other admins need:
   - Access to the shared Keys folder (service account JSON, .env)
