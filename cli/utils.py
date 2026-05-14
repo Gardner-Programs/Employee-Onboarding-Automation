@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from customScripts.authenticator import gmail_v1_api
+from authenticator import gmail_v1_api
 from config import wait_and_click, wait_and_type, wait_present
 
 
@@ -17,16 +17,16 @@ from config import wait_and_click, wait_and_type, wait_present
 # Do NOT use for logic that distinguishes offices (templates, terminals, extensions, etc.).
 
 OFFICE_DISPLAY_MAP = {
-    "Detroit II": "Detroit",
-    "Phoenix II": "Phoenix",
-    "Phoenix I": "Phoenix",
+    "Branch C-II": "Branch C",
+    "Branch G-II": "Branch G",
+    "Branch G-I": "Branch G",
 }
 
 def display_office_name(name):
     """Convert office name for display fields only (e.g. AD City, Gmail address).
 
-    Detroit II and Phoenix II are distinct offices — this is ONLY for
-    fields where the system expects 'Detroit' or 'Phoenix' as a city name.
+    Branch C-II and Branch G-II are distinct offices — this is ONLY for
+    fields where the system expects 'Branch C' or 'Branch G' as a city name.
     """
     return OFFICE_DISPLAY_MAP.get(name, name)
 
