@@ -4,34 +4,35 @@ import pandas
 from unidecode import unidecode
 from config import get_spreadsheet, get_tp_key_worksheet, get_onboarding_worksheet
 
-# Maps Reporting Branch -> base template key from EmailTemplates.CONFIGS.
-# Role-specific templates (e.g. chicago_carrier_sales) are assigned manually after.
+# Maps Reporting Branch -> base template key from email_templates.CONFIGS.
+# Role-specific templates (e.g. branch_b_carrier_sales) are assigned manually after.
 BRANCH_MAP = {
-    "Chicago": "chicago",
-    "Detroit": "detroit",
-    "Detroit II": "detroit",
-    "Indianapolis": "indianapolis",
-    "Nashville": "nashville",
-    "Orlando": "orlando",
-    "Panama": "panama",
-    "Phoenix": "default",
-    "Phoenix I": "default",
-    "Phoenix II": "phoenix_ii",
-    "Pittsburgh": "pittsburgh",
-    "Tinley Park": "chicago",
-    "Toledo": "toledo",
+    "Branch A": "branch_a",
+    "Branch B": "branch_b",
+    "Branch C": "branch_c",
+    "Branch C-II": "branch_c",
+    "Branch D": "branch_d",
+    "Branch E": "branch_e",
+    "Branch F": "branch_f",
+    "Branch G": "default",
+    "Branch G-I": "default",
+    "Branch G-II": "office_template",
+    "Branch H": "branch_h",
+    "Branch I": "branch_b",
+    "Branch J": "branch_j",
+    "International": "international",
 }
-BRANCH_MAP_DEFAULT = "fort_wayne"
+BRANCH_MAP_DEFAULT = "branch_a"
 
-# --- Fort Wayne sub-terminal routing ---
+# --- HQ sub-terminal routing ---
 # Title-keyword -> target terminal name. Title routing wins over manager match,
 # so a Sr. BDM whose manager has their own terminal still lands in New Branch.
-FW_TITLE_ROUTING = [
+HQ_TITLE_ROUTING = [
     ("business development manager", "New Branch"),
 ]
 
 # Department-keyword tuples -> target terminal name.
-FW_DEPT_ROUTING = [
+HQ_DEPT_ROUTING = [
     (("carrier", "sales"),  "Carrier Sales Team"),
     (("track",),            "Track & Trace"),
     (("account",),          "Sales Team"),
@@ -46,10 +47,10 @@ FW_DEPT_ROUTING = [
     (("marketing",),        "ADMIN"),
 ]
 
-# FW parent terminal — must never be assigned as a primary terminal.
-FW_PARENT_TERMINAL_ID = "1003"
+# HQ parent terminal — must never be assigned as a primary terminal.
+HQ_PARENT_TERMINAL_ID = "1003"
 # Last-resort fallback when nothing else matches a real sub-terminal.
-FW_ADMIN_FALLBACK_ID = "1071"
+HQ_ADMIN_FALLBACK_ID = "1071"
 
 
 def get_processed_data():
@@ -80,15 +81,15 @@ def get_processed_data():
         row["Employee Email"] = str(row["Employee Email"]).replace("-", "").replace(" ", "")
 
         # 2. Handle Location Standardization
-        if row["Reporting Branch"] in ["Panama City, PA", "Panama City, Panama"]:
-            row["Reporting Branch"] = "Panama"
-        if row["Physical Office"] in ["Panama City, PA", "Panama City, Panama"]:
-            row["Physical Office"] = "Panama"
+        if row["Reporting Branch"] in ["International City", "International Office"]:
+            row["Reporting Branch"] = "International"
+        if row["Physical Office"] in ["International City", "International Office"]:
+            row["Physical Office"] = "International"
 
         if row["Reporting Branch"] == "Remote Field Office":
-            row["Reporting Branch"] = "Fort Wayne"
+            row["Reporting Branch"] = "Branch A"
         if row["Physical Office"] == "Remote Field Office":
-            row["Physical Office"] = "Fort Wayne"
+            row["Physical Office"] = "Branch A"
 
         # 3. Unidecode all fields
         for col in row:
@@ -97,25 +98,24 @@ def get_processed_data():
         # --- A. GENERATE USERNAME ---
         row["Username"] = f"{row['Preferred First Name'].lower()}.{row['Preferred Last Name'].lower()}"
 
-        # --- B. DETERMINE STATE ---
+        # --- B. DETERMINE REGION ---
         state_map = {
-            "Chicago": "Illinois",
-            "Indianapolis": "Indiana",
-            "Fort Wayne": "Indiana",
-            "Orlando": "Florida",
-            "Tinley Park": "Illinois",
-            "Phoenix": "Arizona",
-            "Phoenix II": "Arizona",
-            "Remote": "Indiana",
-            "Toledo": "Ohio",
-            "Nashville": "Tennessee",
-            "Phoenix I": "Arizona",
-            "Panama": "Indiana",
-            "Panama City, PA": "Indiana",
-            "Detroit": "Michigan",
-            "Detroit II": "Michigan",
-            "New Branch": "Indiana",
-            "Pittsburgh": "Pennsylvania"
+            "Branch A": "Region A",
+            "Branch B": "Region B",
+            "Branch C": "Region C",
+            "Branch C-II": "Region C",
+            "Branch D": "Region D",
+            "Branch E": "Region E",
+            "Branch F": "Region F",
+            "Branch G": "Region G",
+            "Branch G-I": "Region G",
+            "Branch G-II": "Region G",
+            "Branch H": "Region H",
+            "Branch I": "Region B",
+            "Branch J": "Region J",
+            "International": "International",
+            "Remote": "Region A",
+            "New Branch": "Region A",
         }
         row["State"] = state_map.get(row["Physical Office"], "")
 
@@ -124,14 +124,14 @@ def get_processed_data():
         physical_office = str(row["Physical Office"])
         search_term = physical_office.lower()
 
-        # === 1. FORT WAYNE SPECIFIC LOGIC ===
-        if physical_office == "Fort Wayne":
+        # === 1. BRANCH A SPECIFIC LOGIC ===
+        if physical_office == "Branch A":
             title_lower = str(row["Title"]).lower()
             dept_lower = str(row["Department"]).lower()
             target_terminal_name = ""
 
             # A. Title-based routing
-            for keyword, target in FW_TITLE_ROUTING:
+            for keyword, target in HQ_TITLE_ROUTING:
                 if keyword in title_lower:
                     target_terminal_name = target
                     break
@@ -147,7 +147,7 @@ def get_processed_data():
                 if manager_name:
                     search_name = manager_name.lower()
                     for term in tp_terminals:
-                        if term["id"] == FW_PARENT_TERMINAL_ID:
+                        if term["id"] == HQ_PARENT_TERMINAL_ID:
                             continue
                         if search_name in str(term["name"]).lower():
                             found_terminal_id = term["id"]
@@ -155,7 +155,7 @@ def get_processed_data():
 
             # C. Department fallback
             if not found_terminal_id and not target_terminal_name:
-                for keywords, target in FW_DEPT_ROUTING:
+                for keywords, target in HQ_DEPT_ROUTING:
                     if all(kw in dept_lower for kw in keywords):
                         target_terminal_name = target
                         break
@@ -166,7 +166,7 @@ def get_processed_data():
             if target_terminal_name and not found_terminal_id:
                 target = target_terminal_name.lower()
                 for term in tp_terminals:
-                    if term["id"] == FW_PARENT_TERMINAL_ID:
+                    if term["id"] == HQ_PARENT_TERMINAL_ID:
                         continue
                     key_name = str(term["name"]).lower()
                     if target == "sales team" and "carrier" in key_name:
@@ -176,15 +176,15 @@ def get_processed_data():
                         break
 
             # E. Safety net
-            if found_terminal_id in ("", FW_PARENT_TERMINAL_ID):
+            if found_terminal_id in ("", HQ_PARENT_TERMINAL_ID):
                 found_terminal_id = ""
                 for term in tp_terminals:
                     tn = str(term["name"]).lower()
-                    if "admin" in tn and "ap only" in tn and term["id"] != FW_PARENT_TERMINAL_ID:
+                    if "admin" in tn and "ap only" in tn and term["id"] != HQ_PARENT_TERMINAL_ID:
                         found_terminal_id = term["id"]
                         break
                 if not found_terminal_id:
-                    found_terminal_id = FW_ADMIN_FALLBACK_ID
+                    found_terminal_id = HQ_ADMIN_FALLBACK_ID
 
         # === 2. GENERAL LOGIC ===
         else:
@@ -197,18 +197,18 @@ def get_processed_data():
 
         # --- D. DETERMINE OFFICE PHONE ---
         phone_map = {
-            "1057": "4805060355",
-            "1065": "4805060355",
-            "1015": "3123007447",
-            "1029": "3133346600",
-            "1035": "2609180254",
-            "1107": "3133853745",
-            "1126": "2602046180",
-            "1069": "3123007447",
-            "1068": "3123007447",
-            "1129": "3123007447"
+            "1057": "5550000001",
+            "1065": "5550000001",
+            "1015": "5550000002",
+            "1029": "5550000003",
+            "1035": "5550000004",
+            "1107": "5550000005",
+            "1126": "5550000006",
+            "1069": "5550000002",
+            "1068": "5550000002",
+            "1129": "5550000002"
         }
-        row["Office Phone"] = phone_map.get(str(row["Terminal"]), "2602084500")
+        row["Office Phone"] = phone_map.get(str(row["Terminal"]), "5550000000")
 
         # --- E. DETERMINE TEMPLATE ---
         base_template = BRANCH_MAP.get(row["Reporting Branch"], BRANCH_MAP_DEFAULT)

@@ -20,28 +20,28 @@ RING_GROUPS = {1024,1051,1057,1061,1066,1085,1092,1100,1111,1313,1114,1036,1121,
 
 DEFAULT_EXT_RANGE = (1000, 1999)
 OFFICE_EXT_RANGES = {
-	'Fort Wayne': (1000,1999),
+	'Branch A': (1000,1999),
 	'Remote Field Office': (1000,1999),
 	'Remote': (1000,1999),
 	'New Branch': (1000,1999),
-	'Indianapolis': (2000,2499),
-	'Nashville': (2500,2999),
-	'Phoenix': (4000,4499),
-	'Phoenix II': (4500,4999),
-	'Detroit': (5000,5499),
-	'Toledo': (6000,6499),
-	'Pittsburgh': (7000,7499),
-	'Chicago': (8000,8399),
-	'Orlando': (8400,8599),
-	'Tinley Park': (8600,8999),
-	'Team Troyer': (9000,9499),
+	'Branch D': (2000,2499),
+	'Branch F': (2500,2999),
+	'Branch G': (4000,4499),
+	'Branch G-II': (4500,4999),
+	'Branch C': (5000,5499),
+	'Branch H': (6000,6499),
+	'Branch J': (7000,7499),
+	'Branch B': (8000,8399),
+	'Branch E': (8400,8599),
+	'Branch I': (8600,8999),
+	'Leadership Team': (9000,9499),
 }
 
 # Phone number area code prefixes by office
 OFFICE_PHONE_PREFIX = {
-	"Phoenix II": "1480",
+	"Branch G-II": "1555",
 }
-DEFAULT_PHONE_PREFIX = "1260"
+DEFAULT_PHONE_PREFIX = "1555"
 
 # --- 8x8 Admin XPATHs ---
 USERS_URL = "https://admin.8x8.com/users"

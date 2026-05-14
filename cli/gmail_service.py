@@ -1,6 +1,6 @@
 import os
 import base64
-from customScripts.authenticator import admin_directory_v1_api
+from authenticator import admin_directory_v1_api
 from googleapiclient.errors import HttpError
 from config import DEFAULT_PASSWORD
 from utils import display_office_name
@@ -76,15 +76,15 @@ def updateUserInfo(array):
             results = service.users().update(userKey=key, body=data).execute()
 
             try:
-                if user["Physical Office"] == "Panama" or user["Reporting Branch"] == "Panama":
+                if user["Physical Office"] == "International" or user["Reporting Branch"] == "International":
                     body = {"email": key, "role": "MEMBER"}
-                    result = service.members().insert(groupKey="panama@company.com", body=body).execute()
-                if user["Physical Office"] != "Panama" and user["Reporting Branch"] != "Panama":
+                    result = service.members().insert(groupKey="international@company.com", body=body).execute()
+                if user["Physical Office"] != "International" and user["Reporting Branch"] != "International":
                     body = {"email": key, "role": "MEMBER"}
-                    result = service.members().insert(groupKey="usa@company.com", body=body).execute()
-                if user["Physical Office"] == "Fort Wayne" and user["Reporting Branch"] == "Fort Wayne":
+                    result = service.members().insert(groupKey="domestic@company.com", body=body).execute()
+                if user["Physical Office"] == "Branch A" and user["Reporting Branch"] == "Branch A":
                     body = {"email": key, "role": "MEMBER"}
-                    result = service.members().insert(groupKey="fortwayne@company.com", body=body).execute()
+                    result = service.members().insert(groupKey="branch-a@company.com", body=body).execute()
             except Exception as e:
                 error = str(e)
                 print(error)

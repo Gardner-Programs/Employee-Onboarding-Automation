@@ -25,9 +25,9 @@ def _pause(message="Press continue to proceed..."):
 # --- Office Display Name ---
 
 OFFICE_DISPLAY_MAP = {
-    "Detroit II": "Detroit",
-    "Phoenix II": "Phoenix",
-    "Phoenix I": "Phoenix",
+    "Branch C-II": "Branch C",
+    "Branch G-II": "Branch G",
+    "Branch G-I": "Branch G",
 }
 
 

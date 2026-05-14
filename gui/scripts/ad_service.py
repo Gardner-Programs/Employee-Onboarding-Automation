@@ -11,21 +11,21 @@ UPN_DOMAIN = "corp.company.com"
 
 # Map Reporting Branch -> AD OU path under Corp
 OU_BRANCH_MAP = {
-    "Fort Wayne":    f"OU=Fort Wayne,OU=All Sites,{AD_ROOT}",
-    "Chicago":       f"OU=Chicago,OU=All Sites,{AD_ROOT}",
-    "Detroit":       f"OU=Detroit,OU=All Sites,{AD_ROOT}",
-    "Detroit II":    f"OU=Detroit,OU=All Sites,{AD_ROOT}",
-    "Indianapolis":  f"OU=Indianapolis,OU=All Sites,{AD_ROOT}",
-    "Orlando":       f"OU=Orlando,OU=All Sites,{AD_ROOT}",
-    "Nashville":     f"OU=Nashville,OU=All Sites,{AD_ROOT}",
-    "Phoenix":       f"OU=Phoenix,OU=All Sites,{AD_ROOT}",
-    "Phoenix I":     f"OU=Phoenix,OU=All Sites,{AD_ROOT}",
-    "Phoenix II":    f"OU=Phoenix,OU=All Sites,{AD_ROOT}",
-    "Toledo":        f"OU=Toledo,OU=All Sites,{AD_ROOT}",
-    "Tinley Park":   f"OU=Tinley Park,OU=All Sites,{AD_ROOT}",
-    "Panama":        f"OU=Panama,OU=All Sites,{AD_ROOT}",
-    "Pittsburgh":    f"OU=Pittsburgh,OU=All Sites,{AD_ROOT}",
-    "Remote":        f"OU=Fort Wayne,OU=All Sites,{AD_ROOT}",
+    "Branch A":      f"OU=Branch A,OU=All Sites,{AD_ROOT}",
+    "Branch B":      f"OU=Branch B,OU=All Sites,{AD_ROOT}",
+    "Branch C":      f"OU=Branch C,OU=All Sites,{AD_ROOT}",
+    "Branch C-II":   f"OU=Branch C,OU=All Sites,{AD_ROOT}",
+    "Branch D":      f"OU=Branch D,OU=All Sites,{AD_ROOT}",
+    "Branch E":      f"OU=Branch E,OU=All Sites,{AD_ROOT}",
+    "Branch F":      f"OU=Branch F,OU=All Sites,{AD_ROOT}",
+    "Branch G":      f"OU=Branch G,OU=All Sites,{AD_ROOT}",
+    "Branch G-I":    f"OU=Branch G,OU=All Sites,{AD_ROOT}",
+    "Branch G-II":   f"OU=Branch G,OU=All Sites,{AD_ROOT}",
+    "Branch H":      f"OU=Branch H,OU=All Sites,{AD_ROOT}",
+    "Branch I":      f"OU=Branch I,OU=All Sites,{AD_ROOT}",
+    "International": f"OU=International,OU=All Sites,{AD_ROOT}",
+    "Branch J":      f"OU=Branch J,OU=All Sites,{AD_ROOT}",
+    "Remote":        f"OU=Branch A,OU=All Sites,{AD_ROOT}",
 }
 
 

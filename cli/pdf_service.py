@@ -3,7 +3,7 @@ import tempfile
 import pdfkit
 from datetime import datetime
 from googleapiclient.http import MediaFileUpload
-from customScripts.authenticator import drive_v3_api
+from authenticator import drive_v3_api
 from config import DEFAULT_PASSWORD
 
 # Shared Drive names
@@ -137,7 +137,7 @@ def makeLoginSheets(array):
         else:
             html = f"""<html><head><title>{username}</title></head><body style="font-family:arial;font-size:12pt;line-height:2;"><p style="text-align:center;"><img src="YOUR_LOGO_URL" alt="Logo"></P><p style="text-align:center;font-family:arial;font-size:16pt;"><b>Accounts &amp; Initial Logins</b></p><p><b><u>Gmail Access:</u></b></br> This will be your login for Gmail as well as Google Chrome. Once you open up Google Chrome you will navigate to the small icon in the upper right corner that shows a head. Click that then log in. Once logged in a pop up window will come up, click &#34;I&#39;m In&#34; and then on the next one click &#34;Link Data&#34;. Once done you can then go to <a href="https://www.gmail.com/" target="_blank">gmail.com</a></br><b>Gmail Login: {email}</br>Password: {DEFAULT_PASSWORD}</b></p><p><b><u>TPP (Transport Pro) Access:</u></b></br> Navigate to <a href="http://cli.transportpro.net" target="_blank">cli.transportpro.net</a>. Once there you can click the system login button on the page and you enter your email and {DEFAULT_PASSWORD} as the password. After the first login you should be able to press login with Google to sign in immediately. </br><b>TPP Login: {email}</br>Password: {DEFAULT_PASSWORD}</b></p><p><b><u>8x8 Login:</u></b></br> A welcome email will be sent to your work email, click the button located there to create your first password. </p></body></html>"""
 
-        if str(user["Physical Office"]).lower() in ("phoenix ii", "panama"):
+        if str(user["Physical Office"]).lower() in ("branch g-ii", "international"):
             html = f"""<html><head><title>{username}</title></head><body style="font-family:arial;font-size:12pt;line-height:2;"><p style="text-align:center;"><img src="YOUR_LOGO_URL" alt="Logo"></P><p style="text-align:center;font-family:arial;font-size:16pt;"><b>Accounts &amp; Initial Logins</b></p><p><b><u>Gmail Access:</u></b></br> This will be your login for Gmail as well as Google Chrome. Once you open up Google Chrome you will navigate to the small icon in the upper right corner that shows a head. Click that then log in. Once logged in a pop up window will come up, click &#34;I&#39;m In&#34; and then on the next one click &#34;Link Data&#34;. Once done you can then go to <a href="https://www.gmail.com/" target="_blank">gmail.com</a></br><b>Gmail Login: {email}</br>Password: {DEFAULT_PASSWORD}</b></p><p><b><u>TPP (Transport Pro) Access:</u></b></br> Navigate to <a href="http://cli.transportpro.net" target="_blank">cli.transportpro.net</a>. Once there you can click the system login button on the page and you enter your email and {DEFAULT_PASSWORD} as the password. After the first login you should be able to press login with Google to sign in immediately. </br><b>TPP Login: {email}</br>Password: {DEFAULT_PASSWORD}</b></p><p><b><u>8x8 Login:</u></b></br> A welcome email will be sent to your work email, click the button located there to create your first password. </p><p><b><u>Talent LMS Access:</u></b></br> Go to your company's LMS dashboard and click login.</br><b>Talent LMS Login: {email}</br>Password: {DEFAULT_PASSWORD}</b></p></body></html>"""
 
         date_str = user.get("Effective Date", "")
@@ -164,18 +164,18 @@ def makeLoginSheets(array):
             # Always save to Master
             upload_to(login_drive_id, ["Master", date_str])
 
-            if reporting in ["Chicago", "Orlando", "Tinley Park"]:
+            if reporting in ["Branch B", "Branch E", "Branch I"]:
                 upload_to(smith_drive_id, [physical, date_str])
-                if "Panama" in [physical, reporting]:
-                    upload_to(login_drive_id, ["Panama", date_str])
-            elif "Panama" in [physical, reporting]:
-                upload_to(login_drive_id, ["Panama", date_str])
-            elif reporting == "Phoenix II":
-                upload_to(login_drive_id, ["Phoenix II", date_str])
-                if physical == "Panama":
-                    upload_to(login_drive_id, ["Panama", date_str])
-            elif physical == "Fort Wayne":
-                upload_to(login_drive_id, ["Fort Wayne", date_str])
+                if "International" in [physical, reporting]:
+                    upload_to(login_drive_id, ["International", date_str])
+            elif "International" in [physical, reporting]:
+                upload_to(login_drive_id, ["International", date_str])
+            elif reporting == "Branch G-II":
+                upload_to(login_drive_id, ["Branch G-II", date_str])
+                if physical == "International":
+                    upload_to(login_drive_id, ["International", date_str])
+            elif physical == "Branch A":
+                upload_to(login_drive_id, ["Branch A", date_str])
             else:
                 upload_to(login_drive_id, [physical, date_str])
                 upload_to(login_drive_id, [reporting, date_str])

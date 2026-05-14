@@ -24,17 +24,17 @@ XPATH_OK_BTN = "/html/body/div[5]/table/tbody/tr/td/div/div[2]/table[2]/tbody/tr
 
 # Maintenance location values by branch
 MAINTENANCE_MAP = {
-    "Fort Wayne": "2", "Remote": "2", "Nashville": "2", "Pittsburgh": "2",
-    "Panama": "8",
+    "Branch A": "2", "Remote": "2", "Branch F": "2", "Branch J": "2",
+    "International": "8",
     "Indianapolis": "4",
-    "Detroit": "9",
-    "Detroit II": "9",
+    "Branch C": "9",
+    "Branch C-II": "9",
     "Columbia": "11",
-    "Chicago": "3", "Tinley Park": "3", "Troyer": "3",
-    "Orlando": "5",
+    "Branch B": "3", "Branch I": "3", "Leadership": "3",
+    "Branch E": "5",
     "Burr Ridge": "6",
-    "Phoenix II": "7", "Phoenix": "7", "Phoenix I": "7",
-    "Toledo": "10",
+    "Branch G-II": "7", "Branch G": "7", "Branch G-I": "7",
+    "Branch H": "10",
 }
 MAINTENANCE_DEFAULT = "2"
 
@@ -143,7 +143,7 @@ def _find_best_sub_terminal(reporting_branch, parent_id, hierarchy, flat_lookup)
 
 
 def _find_fw_parent(hierarchy):
-    """Find the Fort Wayne parent terminal ID."""
+    """Find the headquarters parent terminal ID."""
     for parent_id, info in hierarchy.items():
         stripped = _strip_terminal_name(info["name"])
         if "fort wayne" in stripped:
@@ -203,9 +203,9 @@ def makeTPP(array):
             hierarchy, flat_lookup = get_terminals(driver.page_source)
 
             # Primary Terminal & Visibility
-            is_fw = user.get("Physical Office", "") == "Fort Wayne"
+            is_hq = user.get("Physical Office", "") == "Branch A"
 
-            if is_fw:
+            if is_hq:
                 primary_terminal_id = user["Terminal"]
                 _, fw_all_ids = _find_fw_parent(hierarchy)
                 visibility_ids = set(fw_all_ids)

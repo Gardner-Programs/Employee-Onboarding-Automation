@@ -3,41 +3,43 @@ import pandas
 from unidecode import unidecode
 from scripts.config import get_spreadsheet, get_tp_key_worksheet, get_onboarding_worksheet
 
-# Valid email signature template keys (mirrored from Email_Signatures/scripts/EmailTemplates.py CONFIGS).
+# Valid email signature template keys (mirrored from scripts/email_templates.py CONFIGS).
 # Only the key names are needed here — data_processing just checks membership.
-# Update this set when new templates are added to EmailTemplates.py.
+# Update this set when new templates are added to email_templates.py.
 VALID_TEMPLATES = {
-    "chicago", "chicago_carrier_sales", "chicago_driver_services", "chicago_track_trace",
+    "branch_a", "branch_a_carrier_sales", "branch_a_expedite", "branch_a_track_trace",
+    "branch_b", "branch_b_carrier_sales", "branch_b_driver_services", "branch_b_track_trace",
+    "branch_c",
+    "branch_d",
+    "branch_e", "branch_e_carrier_sales", "branch_e_track_trace",
+    "branch_f", "branch_f_carrier_sales",
+    "branch_h",
+    "branch_j", "branch_j_carrier_sales", "branch_j_track_trace",
     "corp_billing", "corp_claims", "corp_credit", "corp_fraud", "corp_hr", "corp_transportation",
-    "default", "detroit",
-    "fort_wayne", "fort_wayne_carrier_sales", "fort_wayne_expedite", "fort_wayne_track_trace",
-    "indianapolis",
-    "nashville", "nashville_carrier_sales",
-    "orlando", "orlando_carrier_sales", "orlando_track_trace",
-    "panama", "panama_carrier_sales", "panama_track_trace",
-    "phoenix_ii", "phoenix_ii_carrier_sales", "phoenix_ii_track_trace",
-    "pittsburgh", "pittsburgh_carrier_sales", "pittsburgh_track_trace",
-    "toledo",
+    "default",
+    "international", "international_carrier_sales", "international_track_trace",
+    "office_template", "office_template_carrier_sales", "office_template_track_trace",
     "transport_dispatch",
 }
 
 # Maps Reporting Branch -> base template key from VALID_TEMPLATES.
 BRANCH_MAP = {
-    "Chicago": "chicago",
-    "Detroit": "detroit",
-    "Detroit II": "detroit",
-    "Indianapolis": "indianapolis",
-    "Nashville": "nashville",
-    "Orlando": "orlando",
-    "Panama": "panama",
-    "Phoenix": "default",
-    "Phoenix I": "default",
-    "Phoenix II": "phoenix_ii",
-    "Pittsburgh": "pittsburgh",
-    "Tinley Park": "chicago",
-    "Toledo": "toledo",
+    "Branch A": "branch_a",
+    "Branch B": "branch_b",
+    "Branch C": "branch_c",
+    "Branch C-II": "branch_c",
+    "Branch D": "branch_d",
+    "Branch E": "branch_e",
+    "Branch F": "branch_f",
+    "Branch G": "default",
+    "Branch G-I": "default",
+    "Branch G-II": "office_template",
+    "Branch H": "branch_h",
+    "Branch I": "branch_b",
+    "Branch J": "branch_j",
+    "International": "international",
 }
-BRANCH_MAP_DEFAULT = "fort_wayne"
+BRANCH_MAP_DEFAULT = "branch_a"
 
 for _branch, _tmpl in BRANCH_MAP.items():
     if _tmpl not in VALID_TEMPLATES:
@@ -68,15 +70,15 @@ def get_processed_data():
         row["Preferred First Name"] = str(row["Preferred First Name"]).replace("-", "").replace(" ", "")
         row["Employee Email"] = str(row["Employee Email"]).replace("-", "").replace(" ", "")
 
-        if row["Reporting Branch"] in ["Panama City, PA", "Panama City, Panama"]:
-            row["Reporting Branch"] = "Panama"
-        if row["Physical Office"] in ["Panama City, PA", "Panama City, Panama"]:
-            row["Physical Office"] = "Panama"
+        if row["Reporting Branch"] in ["International City", "International Office"]:
+            row["Reporting Branch"] = "International"
+        if row["Physical Office"] in ["International City", "International Office"]:
+            row["Physical Office"] = "International"
 
         if row["Reporting Branch"] == "Remote Field Office":
-            row["Reporting Branch"] = "Fort Wayne"
+            row["Reporting Branch"] = "Branch A"
         if row["Physical Office"] == "Remote Field Office":
-            row["Physical Office"] = "Fort Wayne"
+            row["Physical Office"] = "Branch A"
 
         for col in row:
             row[col] = unidecode(str(row[col]))
@@ -84,23 +86,22 @@ def get_processed_data():
         row["Username"] = f"{row['Preferred First Name'].lower()}.{row['Preferred Last Name'].lower()}"
 
         state_map = {
-            "Chicago": "Illinois",
-            "Indianapolis": "Indiana",
-            "Fort Wayne": "Indiana",
-            "Orlando": "Florida",
-            "Tinley Park": "Illinois",
-            "Phoenix": "Arizona",
-            "Phoenix II": "Arizona",
-            "Remote": "Indiana",
-            "Toledo": "Ohio",
-            "Nashville": "Tennessee",
-            "Phoenix I": "Arizona",
-            "Panama": "Indiana",
-            "Panama City, PA": "Indiana",
-            "Detroit": "Michigan",
-            "Detroit II": "Michigan",
-            "New Branch": "Indiana",
-            "Pittsburgh": "Pennsylvania"
+            "Branch A": "Region A",
+            "Branch B": "Region B",
+            "Branch C": "Region C",
+            "Branch C-II": "Region C",
+            "Branch D": "Region D",
+            "Branch E": "Region E",
+            "Branch F": "Region F",
+            "Branch G": "Region G",
+            "Branch G-I": "Region G",
+            "Branch G-II": "Region G",
+            "Branch H": "Region H",
+            "Branch I": "Region B",
+            "Branch J": "Region J",
+            "International": "International",
+            "Remote": "Region A",
+            "New Branch": "Region A",
         }
         row["State"] = state_map.get(row["Physical Office"], "")
 
@@ -108,7 +109,7 @@ def get_processed_data():
         physical_office = str(row["Physical Office"])
         search_term = physical_office.lower()
 
-        if physical_office == "Fort Wayne":
+        if physical_office == "Branch A":
             direct_report_email = str(row["Direct Report"])
             manager_name = ""
 
