@@ -48,9 +48,10 @@ HQ_DEPT_ROUTING = [
 ]
 
 # HQ parent terminal — must never be assigned as a primary terminal.
-HQ_PARENT_TERMINAL_ID = "1003"
-# Last-resort fallback when nothing else matches a real sub-terminal.
-HQ_ADMIN_FALLBACK_ID = "1071"
+# Set to the terminal ID of your HQ parent terminal in Transport Pro
+HQ_PARENT_TERMINAL_ID = os.environ.get("HQ_PARENT_TERMINAL_ID", "YOUR_PARENT_TERMINAL_ID")
+# Fallback terminal ID when no department match is found
+HQ_ADMIN_FALLBACK_ID = os.environ.get("HQ_ADMIN_FALLBACK_ID", "YOUR_FALLBACK_TERMINAL_ID")
 
 
 def get_processed_data():
@@ -196,17 +197,11 @@ def get_processed_data():
         row["Terminal"] = found_terminal_id
 
         # --- D. DETERMINE OFFICE PHONE ---
+        # Maps Transport Pro terminal IDs to direct-dial office phone numbers.
+        # Update these with your actual terminal ID -> phone number pairs.
         phone_map = {
-            "1057": "5550000001",
-            "1065": "5550000001",
-            "1015": "5550000002",
-            "1029": "5550000003",
-            "1035": "5550000004",
-            "1107": "5550000005",
-            "1126": "5550000006",
-            "1069": "5550000002",
-            "1068": "5550000002",
-            "1129": "5550000002"
+            "YOUR_TERMINAL_ID_1": "5550000001",
+            "YOUR_TERMINAL_ID_2": "5550000002",
         }
         row["Office Phone"] = phone_map.get(str(row["Terminal"]), "5550000000")
 
