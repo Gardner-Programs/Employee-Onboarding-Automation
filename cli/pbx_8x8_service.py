@@ -184,7 +184,7 @@ def make8x8(array: list[dict]) -> None:
 			wait_and_type(driver, XPATH_SITE_INPUT, site)
 			try:
 				wait_and_click(driver, f"//*[text()='{site}']", timeout=10)
-			except:
+			except Exception:
 				print("Please select site.")
 				os.system("pause")
 
@@ -204,7 +204,7 @@ def make8x8(array: list[dict]) -> None:
 			try:
 				wait_and_type(driver, XPATH_LICENSE_INPUT, LICENSE_NAME)
 				wait_and_click(driver, f"//*[text()='{LICENSE_NAME}']")
-			except:
+			except Exception:
 				print("Error with selecting license. Please select then proceed.")
 				os.system("pause")
 				driver.find_element(By.CSS_SELECTOR, "#react-select-8-input").send_keys(LICENSE_NAME)
@@ -269,7 +269,7 @@ def make8x8(array: list[dict]) -> None:
 				if not sms_toggles:
 					print("No SMS toggles found. Please enable SMS manually then press any key.")
 					os.system("pause")
-			except:
+			except Exception:
 				print("Could not find SMS section automatically. Please enable SMS manually then press any key.")
 				os.system("pause")
 			time.sleep(1)
@@ -282,7 +282,7 @@ def make8x8(array: list[dict]) -> None:
 				driver.execute_script("arguments[0].scrollIntoView(true);", save_btn)
 				time.sleep(1)
 				save_btn.click()
-			except:
+			except Exception:
 				print("Could not find save button automatically. Please save manually then press any key.")
 				os.system("pause")
 
