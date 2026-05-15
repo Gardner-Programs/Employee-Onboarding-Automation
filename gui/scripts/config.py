@@ -21,7 +21,7 @@ BUNDLE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))
 APP_DATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "AccountTool")
 
 # --- Global Constants ---
-DEFAULT_PASSWORD = os.environ.get("DEFAULT_EMP_PASSWORD", "Welcome1!")
+DEFAULT_PASSWORD = os.environ["DEFAULT_EMP_PASSWORD"]
 
 
 # --- WebDriver Setup ---
