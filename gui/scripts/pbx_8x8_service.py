@@ -197,7 +197,7 @@ def make8x8(array: list[dict]) -> None:
             wait_and_type(driver, XPATH_SITE_INPUT, site)
             try:
                 wait_and_click(driver, f"//*[text()='{site}']", timeout=10)
-            except:
+            except Exception:
                 _pause(f"Could not auto-select site '{site}'. Please select it manually, then click Continue.")
 
             time.sleep(1.5)
@@ -214,7 +214,7 @@ def make8x8(array: list[dict]) -> None:
             try:
                 wait_and_type(driver, XPATH_LICENSE_INPUT, LICENSE_NAME)
                 wait_and_click(driver, f"//*[text()='{LICENSE_NAME}']")
-            except:
+            except Exception:
                 _pause(f"Could not auto-select license. Please select '{LICENSE_NAME}' manually, then click Continue.")
                 driver.find_element(By.CSS_SELECTOR, "#react-select-8-input").send_keys(LICENSE_NAME)
                 wait_and_click(driver, f"//*[text()='{LICENSE_NAME}']")
@@ -275,7 +275,7 @@ def make8x8(array: list[dict]) -> None:
                         driver.execute_script("arguments[0].click();", label)
                 if not sms_toggles:
                     _pause("No SMS toggles found. Please enable SMS manually, then click Continue.")
-            except:
+            except Exception:
                 _pause("Could not find SMS section. Please enable SMS manually, then click Continue.")
             time.sleep(1)
 
@@ -286,7 +286,7 @@ def make8x8(array: list[dict]) -> None:
                 driver.execute_script("arguments[0].scrollIntoView(true);", save_btn)
                 time.sleep(1)
                 save_btn.click()
-            except:
+            except Exception:
                 _pause("Could not find save button. Please save manually, then click Continue.")
 
             update_onboarding_sheet(array)
