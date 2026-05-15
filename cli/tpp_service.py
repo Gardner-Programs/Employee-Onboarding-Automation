@@ -191,7 +191,7 @@ def makeTPP(array: list[dict]) -> None:
             select = Select(driver.find_element("name", "state"))
             try:
                 select.select_by_visible_text(user["State"])
-            except:
+            except Exception:
                 pass
 
             driver.find_element("name", "username").send_keys(user["Employee Email"])
@@ -205,7 +205,7 @@ def makeTPP(array: list[dict]) -> None:
             loc_select = Select(driver.find_element(By.XPATH, XPATH_LOCATION_SELECT))
             try:
                 loc_select.select_by_visible_text(city)
-            except:
+            except Exception:
                 print(f"  WARNING: Location '{city}' not found in dropdown, skipping location selection")
 
             # Maintenance Location

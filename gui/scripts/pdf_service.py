@@ -163,7 +163,7 @@ def makeLoginSheets(array: list[dict]) -> None:
         if date_str:
             try:
                 date_str = datetime.strptime(date_str, "%Y-%m-%d").strftime("%m-%d-%Y")
-            except:
+            except Exception:
                 pass
 
         reporting = user["Reporting Branch"]
