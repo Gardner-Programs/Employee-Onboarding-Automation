@@ -1,6 +1,24 @@
 # Employee Onboarding Automation
 
-A full-stack Python automation suite for IT onboarding. Provisions new-hire accounts across Google Workspace, Active Directory, 8x8 PBX, and Transport Pro from a single Google Sheets source of truth. Available as both a CLI tool and a Tkinter desktop GUI.
+IT onboarding across five systems that don't talk to each other — automated from a single Google Sheet.
+
+The problem: provisioning a new employee requires creating accounts in Google Workspace, Active Directory, 8x8 VoIP, and Transport Pro, plus registering their number with the Free Caller Registry and generating a PDF login sheet. Done manually it takes 30–45 minutes per hire and is error-prone. This tool does it in one run.
+
+Available as both a CLI tool and a Tkinter desktop GUI (packaged as a Windows `.exe` for non-technical staff).
+
+---
+
+## What makes this interesting
+
+**Most of these systems have no API.** Google Workspace and AD have proper APIs. 8x8, Transport Pro, and the Free Caller Registry don't — or their APIs are locked behind enterprise tiers. This tool automates their web consoles with Selenium, handling login, 2FA, form filling, and session persistence exactly as a human operator would.
+
+**Session persistence.** 8x8 requires 2FA on every new session. The GUI saves Selenium cookie state to `%LOCALAPPDATA%` so re-authentication is only required after sessions actually expire — not on every run.
+
+**Single source of truth.** All new-hire data flows from a Google Sheet. The sheet is updated in-place as 8x8 extensions and direct-dial numbers are assigned, so the onboarding record is always current.
+
+**Two interfaces, one codebase.** The CLI version targets sysadmins running from a terminal. The GUI version — packaged with PyInstaller into a single `.exe` — targets non-technical HR staff who need to run individual provisioning steps with checkboxes and a progress log.
+
+---
 
 ## Overview
 
