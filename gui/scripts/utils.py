@@ -48,7 +48,7 @@ def display_office_name(name: str) -> str:
 
 # --- Email Utilities ---
 
-def sendEmail(to: str, subject: str, html_content: str) -> None:
+def send_email(to: str, subject: str, html_content: str) -> None:
     """Send an HTML email via the onboarding notifications Gmail account."""
     gmail_service = gmail_v1_api("notifications@company.com")
     message = EmailMessage()
@@ -59,12 +59,16 @@ def sendEmail(to: str, subject: str, html_content: str) -> None:
     gmail_service.users().messages().send(userId="me", body=encoded_message).execute()
 
 
+# Backward-compatible alias for existing callers
+sendEmail = send_email
+
+
 # --- Verification Code Retrieval ---
 
 def _get_code_from_gmail(
     snippet_match: str,
     parse_func: Callable[[str], str | None],
-) -> tuple[str, datetime] | str:
+) -> tuple[str, datetime] | None:
     service = gmail_v1_api(get_admin_email())
     result = service.users().messages().list(userId="me", maxResults=5).execute()
     for x in result.get("messages", []):
@@ -81,10 +85,10 @@ def _get_code_from_gmail(
                 except Exception as e:
                     print(f"Could not mark as read: {e}")
                 return (code, msg_time)
-    return "No code found."
+    return None
 
 
-def get_tp_code() -> tuple[str, datetime] | str:
+def get_tp_code() -> tuple[str, datetime] | None:
     """Return the latest Transport Pro 2FA code and its timestamp from Gmail."""
     def parse(snippet):
         search = re.search(r'process\.\s+(\d{6})', snippet)
@@ -93,7 +97,7 @@ def get_tp_code() -> tuple[str, datetime] | str:
     return _get_code_from_gmail("Transport Pro - Verification Code", parse)
 
 
-def get_caller_code() -> tuple[str, datetime] | str:
+def get_caller_code() -> tuple[str, datetime] | None:
     """Return the latest Free Caller Registry verification code and timestamp from Gmail."""
     def parse(snippet):
         search = re.findall(r'Free Caller Registry Verification Code: \[\d+', snippet)
@@ -102,7 +106,7 @@ def get_caller_code() -> tuple[str, datetime] | str:
     return _get_code_from_gmail("Free Caller Registry Verification Code:", parse)
 
 
-def get_8x8_code() -> tuple[str, datetime] | str:
+def get_8x8_code() -> tuple[str, datetime] | None:
     """Return the latest 8x8 login code and its timestamp from Gmail."""
     def parse(snippet):
         search = re.findall(r'login code: \d+', snippet)
@@ -114,7 +118,7 @@ def get_8x8_code() -> tuple[str, datetime] | str:
 # --- 2FA Verification Loop ---
 
 def wait_for_verification_code(
-    code_func: Callable[[], tuple[str, datetime] | str],
+    code_func: Callable[[], tuple[str, datetime] | None],
     start_time: datetime,
     max_attempts: int = 10,
     poll_interval: int = 2,
