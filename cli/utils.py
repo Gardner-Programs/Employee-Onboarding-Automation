@@ -39,7 +39,7 @@ def display_office_name(name: str) -> str:
 
 # --- Email Utilities ---
 
-def sendEmail(to: str, subject: str, html_content: str) -> None:
+def send_email(to: str, subject: str, html_content: str) -> None:
     """Send an HTML email via the onboarding Gmail account."""
     gmail_service = gmail_v1_api("formresponse@company.com")
     message = EmailMessage()
@@ -50,12 +50,16 @@ def sendEmail(to: str, subject: str, html_content: str) -> None:
     gmail_service.users().messages().send(userId="me", body=encoded_message).execute()
 
 
+# Backward-compatible alias for existing callers
+sendEmail = send_email
+
+
 # --- Verification Code Retrieval ---
 
 def _get_code_from_gmail(
     snippet_match: str,
     parse_func: Callable[[str], str | None],
-) -> tuple[str, datetime] | str:
+) -> tuple[str, datetime] | None:
     service = gmail_v1_api(os.environ["EMAIL"])
     result = service.users().messages().list(userId="me", maxResults=5).execute()
     for x in result.get("messages", []):
@@ -72,10 +76,10 @@ def _get_code_from_gmail(
                 except Exception as e:
                     print(f"Could not mark as read: {e}")
                 return (code, msg_time)
-    return "No code found."
+    return None
 
 
-def get_tp_code() -> tuple[str, datetime] | str:
+def get_tp_code() -> tuple[str, datetime] | None:
     """Return the latest Transport Pro 2FA code and its timestamp from Gmail."""
     def parse(snippet):
         search = re.search(r'process\.\s+(\d{6})', snippet)
@@ -84,7 +88,7 @@ def get_tp_code() -> tuple[str, datetime] | str:
     return _get_code_from_gmail("Transport Pro - Verification Code", parse)
 
 
-def get_caller_code() -> tuple[str, datetime] | str:
+def get_caller_code() -> tuple[str, datetime] | None:
     """Return the latest Free Caller Registry verification code and timestamp from Gmail."""
     def parse(snippet):
         search = re.findall(r'Free Caller Registry Verification Code: \[\d+', snippet)
@@ -93,7 +97,7 @@ def get_caller_code() -> tuple[str, datetime] | str:
     return _get_code_from_gmail("Free Caller Registry Verification Code:", parse)
 
 
-def get_8x8_code() -> tuple[str, datetime] | str:
+def get_8x8_code() -> tuple[str, datetime] | None:
     """Return the latest 8x8 login code and its timestamp from Gmail."""
     def parse(snippet):
         search = re.findall(r'login code: \d+', snippet)
@@ -113,7 +117,7 @@ def wait_for_verification_code(
     """Poll for a fresh verification code from email.
 
     Args:
-        code_func: Function that returns ``(code, timestamp)`` or a non-tuple sentinel.
+        code_func: Function that returns ``(code, timestamp)`` or None.
         start_time: Only accept codes whose timestamp is after this datetime.
         max_attempts: Maximum number of polling attempts before giving up.
         poll_interval: Seconds to wait between attempts.
@@ -171,9 +175,15 @@ def login_8x8(driver: webdriver.Firefox) -> bool:
         time.sleep(2)
         wait_and_click(driver, _8X8_2FA_SUBMIT)
         return True
-    except Exception:
-        # May already be logged in via profile cookies
+    except Exception as e:
+        # Distinguish "already logged in" from a real failure: if the login
+        # form is still present, the login did not succeed.
         time.sleep(5)
+        if driver.find_elements("id", "loginId"):
+            print(f"8x8 login failed: {e}")
+            driver.quit()
+            return False
+        # Login form is gone: already authenticated via profile cookies.
         return True
 
 
@@ -213,5 +223,12 @@ def login_tp(driver: webdriver.Firefox) -> bool:
         driver.get("https://cli.transportpro.net/#edit_systemUser")
         return True
     except Exception as e:
-        print(f"TP login error: {e}")
-        return True  # May already be logged in
+        # Distinguish "already logged in" from a real failure: if the login
+        # form is still present, the login did not succeed.
+        if driver.find_elements(By.XPATH, _TP_EMAIL_INPUT):
+            print(f"TP login failed: {e}")
+            driver.quit()
+            return False
+        # Login form is gone: already authenticated via existing session.
+        print(f"TP login continuing on existing session ({e})")
+        return True
