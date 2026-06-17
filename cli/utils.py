@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 import time
 import base64
 from collections.abc import Callable
@@ -16,6 +15,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from authenticator import gmail_v1_api
 from config import wait_and_click, wait_and_type, wait_present
+from verification import (
+    parse_tp_code, parse_caller_code, parse_8x8_code, wait_for_verification_code,
+)
 
 
 # --- Office Display Name ---
@@ -81,58 +83,17 @@ def _get_code_from_gmail(
 
 def get_tp_code() -> tuple[str, datetime] | None:
     """Return the latest Transport Pro 2FA code and its timestamp from Gmail."""
-    def parse(snippet):
-        search = re.search(r'process\.\s+(\d{6})', snippet)
-        if search: return search.group(1)
-        return None
-    return _get_code_from_gmail("Transport Pro - Verification Code", parse)
+    return _get_code_from_gmail("Transport Pro - Verification Code", parse_tp_code)
 
 
 def get_caller_code() -> tuple[str, datetime] | None:
     """Return the latest Free Caller Registry verification code and timestamp from Gmail."""
-    def parse(snippet):
-        search = re.findall(r'Free Caller Registry Verification Code: \[\d+', snippet)
-        if search: return str(search[0]).replace("Free Caller Registry Verification Code: [", "")
-        return None
-    return _get_code_from_gmail("Free Caller Registry Verification Code:", parse)
+    return _get_code_from_gmail("Free Caller Registry Verification Code:", parse_caller_code)
 
 
 def get_8x8_code() -> tuple[str, datetime] | None:
     """Return the latest 8x8 login code and its timestamp from Gmail."""
-    def parse(snippet):
-        search = re.findall(r'login code: \d+', snippet)
-        if search: return str(search[0]).replace("login code: ", "")
-        return None
-    return _get_code_from_gmail("Your 8x8 login code: ", parse)
-
-
-# --- 2FA Verification Loop ---
-
-def wait_for_verification_code(
-    code_func: Callable,
-    start_time: datetime,
-    max_attempts: int = 10,
-    poll_interval: int = 2,
-) -> str | None:
-    """Poll for a fresh verification code from email.
-
-    Args:
-        code_func: Function that returns ``(code, timestamp)`` or None.
-        start_time: Only accept codes whose timestamp is after this datetime.
-        max_attempts: Maximum number of polling attempts before giving up.
-        poll_interval: Seconds to wait between attempts.
-
-    Returns:
-        The code string, or None if max attempts are exceeded.
-    """
-    attempts = 0
-    while attempts < max_attempts:
-        code_data = code_func()
-        if isinstance(code_data, tuple) and start_time < code_data[1]:
-            return code_data[0]
-        time.sleep(poll_interval)
-        attempts += 1
-    return None
+    return _get_code_from_gmail("Your 8x8 login code: ", parse_8x8_code)
 
 
 # --- Selenium Login Helpers ---
