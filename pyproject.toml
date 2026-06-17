@@ -1,0 +1,10 @@
+[tool.pytest.ini_options]
+# Where the tests live.
+testpaths = ["tests"]
+# The cli/ modules use flat imports (e.g. `from config import ...`), which assume
+# cli/ is on sys.path — i.e. that you run them from inside cli/. Adding it to
+# pythonpath lets the test suite import the code under test the same way.
+pythonpath = ["cli"]
+# -ra = show a short summary of everything that isn't a plain pass (skips,
+# xfails, errors) at the end of the run, so nothing gets silently swallowed.
+addopts = "-ra"

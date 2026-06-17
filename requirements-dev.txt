@@ -1,0 +1,4 @@
+# Test/development dependencies, kept separate from the app's runtime deps
+# (cli/requirements.txt, gui/requirements.txt) so CI can install only what it
+# needs to run the suite.
+pytest>=8.0
