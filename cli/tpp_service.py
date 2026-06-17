@@ -161,7 +161,7 @@ def _find_best_sub_terminal(
 
 
 def _find_hq_parent(hierarchy: dict) -> tuple[str | None, list[str]]:
-    """Return (hq_parent_id, all_child_ids) for the headquarters (Headquarters) terminal group."""
+    """Return (hq_parent_id, all_child_ids) for the headquarters terminal group."""
     for parent_id, info in hierarchy.items():
         stripped = _strip_terminal_name(info["name"])
         if "headquarters" in stripped:
