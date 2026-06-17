@@ -25,3 +25,6 @@ venv/
 env/
 .env.*
 !.env.example
+
+# Test tooling
+.pytest_cache/
