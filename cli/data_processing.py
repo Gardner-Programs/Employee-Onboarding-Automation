@@ -13,26 +13,10 @@ import sys
 import pandas
 from unidecode import unidecode
 from config import get_spreadsheet, get_tp_key_worksheet, get_onboarding_worksheet
-
-# Maps Reporting Branch -> base template key from email_templates.CONFIGS.
-# Role-specific templates (e.g. branch_b_carrier_sales) are assigned manually after.
-BRANCH_MAP = {
-    "Branch A": "branch_a",
-    "Branch B": "branch_b",
-    "Branch C": "branch_c",
-    "Branch C-II": "branch_c",
-    "Branch D": "branch_d",
-    "Branch E": "branch_e",
-    "Branch F": "branch_f",
-    "Branch G": "default",
-    "Branch G-I": "default",
-    "Branch G-II": "office_template",
-    "Branch H": "branch_h",
-    "Branch I": "branch_b",
-    "Branch J": "branch_j",
-    "International": "international",
-}
-BRANCH_MAP_DEFAULT = "branch_a"
+from enrichment import (
+    clean_identifier, generate_username, standardize_location, determine_region,
+    select_template,
+)
 
 # --- HQ sub-terminal routing ---
 # Title-keyword -> target terminal name. Title routing wins over manager match,
@@ -94,47 +78,22 @@ def get_processed_data() -> list[dict]:
 
     for row in array:
         # 1. Clean Names and Email
-        row["Preferred First Name"] = str(row["Preferred First Name"]).replace("-", "").replace(" ", "")
-        row["Employee Email"] = str(row["Employee Email"]).replace("-", "").replace(" ", "")
+        row["Preferred First Name"] = clean_identifier(row["Preferred First Name"])
+        row["Employee Email"] = clean_identifier(row["Employee Email"])
 
         # 2. Handle Location Standardization
-        if row["Reporting Branch"] in ["International City", "International Office"]:
-            row["Reporting Branch"] = "International"
-        if row["Physical Office"] in ["International City", "International Office"]:
-            row["Physical Office"] = "International"
-
-        if row["Reporting Branch"] == "Remote Field Office":
-            row["Reporting Branch"] = "Branch A"
-        if row["Physical Office"] == "Remote Field Office":
-            row["Physical Office"] = "Branch A"
+        row["Reporting Branch"] = standardize_location(row["Reporting Branch"])
+        row["Physical Office"] = standardize_location(row["Physical Office"])
 
         # 3. Unidecode all fields
         for col in row:
             row[col] = unidecode(str(row[col]))
 
         # --- A. GENERATE USERNAME ---
-        row["Username"] = f"{row['Preferred First Name'].lower()}.{row['Preferred Last Name'].lower()}"
+        row["Username"] = generate_username(row["Preferred First Name"], row["Preferred Last Name"])
 
         # --- B. DETERMINE REGION ---
-        state_map = {
-            "Branch A": "Region A",
-            "Branch B": "Region B",
-            "Branch C": "Region C",
-            "Branch C-II": "Region C",
-            "Branch D": "Region D",
-            "Branch E": "Region E",
-            "Branch F": "Region F",
-            "Branch G": "Region G",
-            "Branch G-I": "Region G",
-            "Branch G-II": "Region G",
-            "Branch H": "Region H",
-            "Branch I": "Region B",
-            "Branch J": "Region J",
-            "International": "International",
-            "Remote": "Region A",
-            "New Branch": "Region A",
-        }
-        row["State"] = state_map.get(row["Physical Office"], "")
+        row["State"] = determine_region(row["Physical Office"])
 
         # --- C. DETERMINE TERMINAL ---
         found_terminal_id = ""
@@ -222,42 +181,9 @@ def get_processed_data() -> list[dict]:
         row["Office Phone"] = phone_map.get(str(row["Terminal"]), "5550000000")
 
         # --- E. DETERMINE TEMPLATE ---
-        base_template = BRANCH_MAP.get(row["Reporting Branch"], BRANCH_MAP_DEFAULT)
-
-        dept_lower = str(row.get("Department", "")).lower()
-        title_lower = str(row.get("Title", "")).lower()
-        combined = dept_lower + " " + title_lower
-
-        ROLE_SUFFIXES = [
-            (["carrier sales", "carrier rep", "carrier team lead", "carrier sales manager"], "_carrier_sales"),
-            (["track and trace", "track & trace", "tracking"], "_track_trace"),
-            (["driver service"], "_driver_services"),
-            (["expedite"], "_expedite"),
-        ]
-
-        CORP_TEMPLATES = [
-            (["billing", "settlements", "pay status"], "corp_billing"),
-            (["credit"], "corp_credit"),
-            (["claims"], "corp_claims"),
-            (["human resources", " hr "], "corp_hr"),
-            (["recruiting", "talent acquisition"], "corp_hr"),
-            (["fraud"], "corp_fraud"),
-            (["transportation"], "corp_transportation"),
-        ]
-
-        selected = base_template
-        for keywords, corp_tmpl in CORP_TEMPLATES:
-            if any(kw in combined for kw in keywords):
-                selected = corp_tmpl
-                break
-        else:
-            for keywords, suffix in ROLE_SUFFIXES:
-                if any(kw in combined for kw in keywords):
-                    candidate = base_template + suffix
-                    selected = candidate
-                    break
-
-        row["Template"] = selected
+        row["Template"] = select_template(
+            row["Reporting Branch"], row.get("Department", ""), row.get("Title", "")
+        )
 
     return array
 
