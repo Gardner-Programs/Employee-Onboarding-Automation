@@ -64,7 +64,11 @@ def _find_best_sub_terminal(
     hierarchy: dict,
     flat_lookup: dict,
 ) -> str | None:
-    """Return the best-matching child terminal ID for *reporting_branch* under *parent_id*."""
+    """Best-matching child terminal ID under *parent_id*, or None if none match.
+
+    Returning None lets the caller fall back to the parent terminal rather than
+    assigning an arbitrary child.
+    """
     children = hierarchy.get(parent_id, {}).get("children", [])
     if not children:
         return None
@@ -83,7 +87,7 @@ def _find_best_sub_terminal(
                 best_score = score
                 best_child = child_id
 
-    return best_child if best_child else children[0]
+    return best_child
 
 
 def _find_hq_parent(hierarchy: dict) -> tuple[str | None, list[str]]:

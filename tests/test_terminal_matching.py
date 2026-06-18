@@ -124,18 +124,18 @@ def test_match_no_match_returns_none(hierarchy, flat_lookup):
 
 # --------------------------------------------------------------------------
 # _find_best_sub_terminal: picks the best child under a known parent. Exact
-# child name wins; with no match it falls back to the first child; a childless
-# parent yields None.
+# child name wins; with no match it returns None (so the caller falls back to
+# the parent terminal); a childless parent also yields None.
 # --------------------------------------------------------------------------
 
 def test_sub_terminal_exact_child_match(hierarchy, flat_lookup):
     assert _find_best_sub_terminal("Sales Team", "100", hierarchy, flat_lookup) == "101"
 
 
-def test_sub_terminal_falls_back_to_first_child(hierarchy, flat_lookup):
-    # No child matches "totally unrelated", so the function defaults to the
-    # first child rather than returning nothing.
-    assert _find_best_sub_terminal("totally unrelated", "100", hierarchy, flat_lookup) == "101"
+def test_sub_terminal_returns_none_on_no_match(hierarchy, flat_lookup):
+    # No child matches; return None so the caller falls back to the parent
+    # terminal instead of assigning an arbitrary child.
+    assert _find_best_sub_terminal("totally unrelated", "100", hierarchy, flat_lookup) is None
 
 
 def test_sub_terminal_none_when_parent_has_no_children(hierarchy, flat_lookup):
