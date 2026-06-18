@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 import time
 import pandas
 import gspread_dataframe
@@ -17,6 +16,9 @@ from scripts.config import (
     wait_and_click, wait_clickable,
 )
 from scripts.utils import login_tp, display_office_name
+from scripts.terminal_matching import (
+    _match_office_to_parent, _find_best_sub_terminal, _find_hq_parent,
+)
 
 TRAINING_TERMINAL = "1145"
 
@@ -42,15 +44,6 @@ MAINTENANCE_MAP = {
     "Branch H": "10",
 }
 MAINTENANCE_DEFAULT = "2"
-
-
-def _strip_terminal_name(name: str) -> str:
-    """Strip leading number prefix and trailing 'Office' suffix for fuzzy matching."""
-    """Strip number prefix and 'Office' suffix for fuzzy matching."""
-    name = name.lstrip("-").strip()
-    name = re.sub(r'^\d+\s*-\s*', '', name)
-    name = re.sub(r'\s+Office$', '', name, flags=re.IGNORECASE)
-    return name.strip().lower()
 
 
 def get_terminals(html_string: str) -> tuple[dict, dict]:
@@ -90,74 +83,6 @@ def get_terminals(html_string: str) -> tuple[dict, dict]:
             hierarchy[tid] = {"name": name, "children": []}
 
     return hierarchy, flat_lookup
-
-
-def _match_office_to_parent(reporting_branch: str, hierarchy: dict, flat_lookup: dict) -> tuple[str | None, list[str]]:
-    """Fuzzy-match *reporting_branch* to a parent terminal and return (parent_id, all_child_ids)."""
-    """Fuzzy match a reporting branch name to a parent terminal."""
-    search = reporting_branch.lower().strip()
-
-    best_match = None
-    best_score = 0
-
-    for parent_id, info in hierarchy.items():
-        stripped = _strip_terminal_name(info["name"])
-        if stripped == search:
-            return parent_id, [parent_id] + info["children"]
-        if search in stripped or stripped in search:
-            score = len(search) / max(len(stripped), 1)
-            if score > best_score:
-                best_score = score
-                best_match = parent_id
-
-        for child_id in info["children"]:
-            child_name = _strip_terminal_name(flat_lookup.get(child_id, ""))
-            if child_name == search:
-                return parent_id, [parent_id] + info["children"]
-            if search in child_name or child_name in search:
-                score = len(search) / max(len(child_name), 1)
-                if score > best_score:
-                    best_score = score
-                    best_match = parent_id
-
-    if best_match:
-        info = hierarchy[best_match]
-        return best_match, [best_match] + info["children"]
-
-    return None, []
-
-
-def _find_best_sub_terminal(reporting_branch: str, parent_id: str, hierarchy: dict, flat_lookup: dict) -> str | None:
-    """Return the best-matching child terminal ID for *reporting_branch* under *parent_id*."""
-    """Find the best matching sub-terminal (child) for a reporting branch."""
-    children = hierarchy.get(parent_id, {}).get("children", [])
-    if not children:
-        return None
-
-    search = reporting_branch.lower().strip()
-
-    best_child = None
-    best_score = 0
-    for child_id in children:
-        child_name = _strip_terminal_name(flat_lookup.get(child_id, ""))
-        if child_name == search:
-            return child_id
-        if search in child_name or child_name in search:
-            score = len(search) / max(len(child_name), 1)
-            if score > best_score:
-                best_score = score
-                best_child = child_id
-
-    return best_child if best_child else children[0]
-
-
-def _find_hq_parent(hierarchy: dict) -> tuple[str | None, list[str]]:
-    """Return (hq_parent_id, all_child_ids) for the headquarters terminal group."""
-    for parent_id, info in hierarchy.items():
-        stripped = _strip_terminal_name(info["name"])
-        if "headquarters" in stripped:
-            return parent_id, [parent_id] + info["children"]
-    return None, []
 
 
 def makeTPP(array: list[dict]) -> None:
