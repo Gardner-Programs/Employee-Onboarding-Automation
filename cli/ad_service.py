@@ -6,6 +6,8 @@ import json
 import subprocess
 from config import DEFAULT_PASSWORD
 from utils import display_office_name
+# Imported under its existing internal name to avoid touching ~40 call sites.
+from ps_utils import ps_escape as _ps_escape
 
 
 # AD domain config
@@ -31,11 +33,6 @@ OU_BRANCH_MAP = {
     "Branch J":      f"OU=Branch J,OU=All Sites,{AD_ROOT}",
     "Remote":        f"OU=Branch A,OU=All Sites,{AD_ROOT}",
 }
-
-
-def _ps_escape(val: object) -> str:
-    """Escape a value for safe embedding in a single-quoted PowerShell string."""
-    return str(val).replace("'", "''")
 
 
 def _run_ps(command: str) -> tuple[str, str, int]:

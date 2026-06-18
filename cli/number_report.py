@@ -12,6 +12,7 @@ import requests
 
 from config import create_driver
 from utils import login_8x8
+from cookie_utils import are_cookies_expired
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -31,18 +32,6 @@ def _apply_cookies(session: requests.Session, cookies: list[dict]) -> None:
     session.cookies.clear()
     for cookie in cookies:
         session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
-
-
-def _are_cookies_expired(cookies: list[dict]) -> bool:
-    """Return True if any cookie in *cookies* has a past expiry timestamp."""
-    if not cookies:
-        return True
-    current_time = time.time()
-    for cookie in cookies:
-        if 'expiry' in cookie and cookie['expiry'] < current_time:
-            print(f"Cookie {cookie['name']} has expired.")
-            return True
-    return False
 
 
 def _get_fresh_cookies() -> list[dict] | None:
@@ -70,7 +59,7 @@ def _get_session() -> requests.Session | None:
         try:
             with open(COOKIE_FILE, "rb") as f:
                 cookies = pickle.load(f)
-            if _are_cookies_expired(cookies):
+            if are_cookies_expired(cookies):
                 print("Cached cookies are expired.")
                 cookies = _get_fresh_cookies()
             else:
