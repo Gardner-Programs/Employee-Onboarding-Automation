@@ -1,3 +1,12 @@
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: import sorting. E501 (line length) ignored —
+# the Selenium XPATH constants are unavoidably long.
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
 [tool.pytest.ini_options]
 # Where the tests live.
 testpaths = ["tests"]

@@ -2,23 +2,28 @@
 
 from __future__ import annotations
 
-import os
 import time
-import pandas
+
 import gspread_dataframe
+import pandas
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver import Chrome
 
 from scripts.config import (
-    create_driver, DEFAULT_PASSWORD, get_spreadsheet, get_tp_key_worksheet,
-    wait_and_click, wait_clickable,
+    DEFAULT_PASSWORD,
+    create_driver,
+    get_spreadsheet,
+    get_tp_key_worksheet,
+    wait_and_click,
+    wait_clickable,
 )
-from scripts.utils import login_tp, display_office_name
 from scripts.terminal_matching import (
-    _match_office_to_parent, _find_best_sub_terminal, _find_hq_parent,
+    _find_best_sub_terminal,
+    _find_hq_parent,
+    _match_office_to_parent,
 )
+from scripts.utils import display_office_name, login_tp
 
 TRAINING_TERMINAL = "1145"
 

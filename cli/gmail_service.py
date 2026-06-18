@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import base64
+import os
+
 from authenticator import admin_directory_v1_api
-from googleapiclient.errors import HttpError
 from config import DEFAULT_PASSWORD
+from googleapiclient.errors import HttpError
 from utils import display_office_name
 
 
@@ -56,7 +57,7 @@ def makeGmail(array: list[dict]) -> None:
         }
 
         try:
-            results = service.users().insert(body=person).execute()
+            service.users().insert(body=person).execute()
         except HttpError as e:
             username = user["Preferred First Name"] + " " + user["Preferred Last Name"]
             err = str(e._get_reason())
@@ -81,18 +82,18 @@ def updateUserInfo(array: list[dict]) -> None:
                 'phones': [{'value': phone, 'type': 'work'}, {'value': mobile, 'type': 'mobile'}],
                 "customSchemas": [{"Signature_Info": {"Extension": phone, "Template": str(user.get("Template", "default")), "Title": title, "Location": address}}]
             }
-            results = service.users().update(userKey=key, body=data).execute()
+            service.users().update(userKey=key, body=data).execute()
 
             try:
                 if user["Physical Office"] == "International" or user["Reporting Branch"] == "International":
                     body = {"email": key, "role": "MEMBER"}
-                    result = service.members().insert(groupKey="international@company.com", body=body).execute()
+                    service.members().insert(groupKey="international@company.com", body=body).execute()
                 if user["Physical Office"] != "International" and user["Reporting Branch"] != "International":
                     body = {"email": key, "role": "MEMBER"}
-                    result = service.members().insert(groupKey="domestic@company.com", body=body).execute()
+                    service.members().insert(groupKey="domestic@company.com", body=body).execute()
                 if user["Physical Office"] == "Branch A" and user["Reporting Branch"] == "Branch A":
                     body = {"email": key, "role": "MEMBER"}
-                    result = service.members().insert(groupKey="branch-a@company.com", body=body).execute()
+                    service.members().insert(groupKey="branch-a@company.com", body=body).execute()
             except Exception as e:
                 error = str(e)
                 print(error)
@@ -100,7 +101,7 @@ def updateUserInfo(array: list[dict]) -> None:
                 ph_data = base64.urlsafe_b64encode(image_file.read()).decode('ascii')
 
             user_photo = {"kind": "admin#directory#user#photo", "photoData": ph_data, "mimeType": "JPG"}
-            results = service.users().photos().update(userKey=key, body=user_photo).execute()
+            service.users().photos().update(userKey=key, body=user_photo).execute()
 
         except Exception as e:
             error = str(e)

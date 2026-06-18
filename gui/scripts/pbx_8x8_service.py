@@ -3,23 +3,26 @@
 from __future__ import annotations
 
 import io
-import os
 import time
+
 import pandas
 import requests
+from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver import Chrome
 
 from scripts.config import (
     create_driver,
-    wait_and_click, wait_and_type, wait_clickable, wait_visible, wait_present,
+    wait_and_click,
+    wait_and_type,
+    wait_clickable,
+    wait_present,
+    wait_visible,
 )
-from scripts.utils import login_8x8
-from scripts.fcr_service import numberRegister
 from scripts.data_processing import update_onboarding_sheet
+from scripts.fcr_service import numberRegister
 from scripts.number_assignment import assign_numbers
+from scripts.utils import login_8x8
 
 # --- Constants ---
 # Extension numbers reserved for ring/hunt groups — new users are never assigned
@@ -71,7 +74,7 @@ def get_number_report(driver: Chrome) -> tuple[list, list] | tuple[None, None]:
     })
 
     start_url = "https://admin.8x8.com/cm-be/dids/api/v1/dids/export/numbers-report/start"
-    print(f"Requesting report generation...")
+    print("Requesting report generation...")
     start_response = s.get(start_url, params={'filter': '', 'lang': 'en-US'})
     start_response.raise_for_status()
 

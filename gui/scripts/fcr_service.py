@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import os
 import time
 from datetime import datetime, timedelta
+
 from selenium.webdriver.support.ui import Select
 
-from scripts.config import create_driver, wait_and_click, wait_and_type, wait_visible
-from scripts.utils import get_caller_code, wait_for_verification_code
 from scripts.authenticator import get_admin_email
-from scripts.session_manager import save_session, load_session
+from scripts.config import create_driver, wait_and_click, wait_and_type, wait_visible
+from scripts.session_manager import save_session
+from scripts.utils import get_caller_code, wait_for_verification_code
 
 FCR_URL = "https://freecallerregistry.com/fcr/"
 

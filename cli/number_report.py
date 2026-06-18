@@ -9,10 +9,9 @@ import time
 
 import pandas as pd
 import requests
-
 from config import create_driver
-from utils import login_8x8
 from cookie_utils import are_cookies_expired
+from utils import login_8x8
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)

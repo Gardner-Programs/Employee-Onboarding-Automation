@@ -5,9 +5,9 @@ from __future__ import annotations
 import os
 import time
 from datetime import datetime, timedelta
-from selenium.webdriver.support.ui import Select
 
 from config import create_driver, wait_and_click, wait_and_type
+from selenium.webdriver.support.ui import Select
 from utils import get_caller_code, wait_for_verification_code
 
 FCR_URL = "https://freecallerregistry.com/fcr/"

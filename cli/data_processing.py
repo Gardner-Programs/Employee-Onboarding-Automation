@@ -9,15 +9,18 @@ phone, and email signature template key before returning the final list.
 from __future__ import annotations
 
 import os
-import sys
+
 import pandas
-from unidecode import unidecode
-from config import get_spreadsheet, get_tp_key_worksheet, get_onboarding_worksheet
+from config import get_onboarding_worksheet, get_spreadsheet, get_tp_key_worksheet
 from enrichment import (
-    clean_identifier, generate_username, standardize_location, determine_region,
+    clean_identifier,
+    determine_region,
+    generate_username,
     select_template,
+    standardize_location,
 )
 from terminal_routing import determine_terminal
+from unidecode import unidecode
 
 # HQ parent terminal — must never be assigned as a primary terminal.
 # Set to the terminal ID of your HQ parent terminal in Transport Pro
@@ -105,7 +108,7 @@ def update_onboarding_sheet(array: list[dict]) -> None:
     if not array:
         return
     import pandas
-    from config import get_spreadsheet, get_onboarding_worksheet
+    from config import get_onboarding_worksheet, get_spreadsheet
     spreadsheet = get_spreadsheet()
     aa_sheet = get_onboarding_worksheet(spreadsheet)
     df = pandas.DataFrame(array)

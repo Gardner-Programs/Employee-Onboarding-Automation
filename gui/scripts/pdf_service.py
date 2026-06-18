@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import os
-import sys
 import tempfile
-import pdfkit
 from datetime import datetime
+
+import pdfkit
 from googleapiclient.http import MediaFileUpload
+
 from scripts.authenticator import drive_v3_api
-from scripts.config import DEFAULT_PASSWORD, IS_FROZEN, BUNDLE_DIR
+from scripts.config import BUNDLE_DIR, DEFAULT_PASSWORD, IS_FROZEN
 
 # When frozen, wkhtmltopdf is bundled inside the exe
 if IS_FROZEN:

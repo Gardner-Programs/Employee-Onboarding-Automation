@@ -5,15 +5,13 @@ out of data_processing.get_processed_data().
 """
 
 import pytest
-
 from enrichment import (
     clean_identifier,
-    generate_username,
-    standardize_location,
     determine_region,
+    generate_username,
     select_template,
+    standardize_location,
 )
-
 
 # --------------------------------------------------------------------------
 # clean_identifier: strips dashes and spaces, coerces to str.

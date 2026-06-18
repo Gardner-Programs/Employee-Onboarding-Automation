@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import os
 import sys
-import gspread
 from collections.abc import Generator
 from contextlib import contextmanager
+
+import gspread
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 from scripts.authenticator import sheets_credentials
 
 # --- Frozen exe helpers ---

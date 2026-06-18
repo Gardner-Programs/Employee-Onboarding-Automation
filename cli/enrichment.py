@@ -9,7 +9,6 @@ them and applies them row by row.
 
 from __future__ import annotations
 
-
 # Reporting Branch -> base email-signature template key.
 BRANCH_MAP = {
     "Branch A": "branch_a",

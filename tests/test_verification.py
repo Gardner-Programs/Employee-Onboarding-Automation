@@ -7,15 +7,13 @@ module is only the regexes and the poll-until-fresh loop.
 from datetime import datetime
 
 import pytest
-
 import verification
 from verification import (
-    parse_tp_code,
-    parse_caller_code,
     parse_8x8_code,
+    parse_caller_code,
+    parse_tp_code,
     wait_for_verification_code,
 )
-
 
 # --------------------------------------------------------------------------
 # Code parsers: each pulls a code out of a real-looking email snippet, and

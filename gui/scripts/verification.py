@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import re
 import time
-from datetime import datetime
 from collections.abc import Callable
+from datetime import datetime
 
 
 def parse_tp_code(snippet: str) -> str | None:

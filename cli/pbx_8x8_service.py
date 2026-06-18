@@ -5,21 +5,24 @@ from __future__ import annotations
 import io
 import os
 import time
+
 import pandas
 import requests
+from config import (
+    create_driver,
+    wait_and_click,
+    wait_and_type,
+    wait_clickable,
+    wait_present,
+    wait_visible,
+)
+from data_processing import update_onboarding_sheet
+from fcr_service import numberRegister
+from number_assignment import assign_numbers
+from selenium.webdriver import Firefox
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver import Firefox
-
-from config import (
-    create_driver, get_firefox_service_and_options,
-    wait_and_click, wait_and_type, wait_clickable, wait_visible, wait_present,
-)
 from utils import login_8x8
-from fcr_service import numberRegister
-from data_processing import update_onboarding_sheet
-from number_assignment import assign_numbers
 
 # --- Constants ---
 # Extension numbers reserved for ring/hunt groups — new users are never assigned
@@ -58,7 +61,7 @@ def get_number_report(driver: Firefox) -> tuple[list[str], list[str]] | tuple[No
     })
 
     start_url = "https://admin.8x8.com/cm-be/dids/api/v1/dids/export/numbers-report/start"
-    print(f"Requesting report generation...")
+    print("Requesting report generation...")
     start_response = s.get(start_url, params={'filter': '', 'lang': 'en-US'})
     start_response.raise_for_status()
 

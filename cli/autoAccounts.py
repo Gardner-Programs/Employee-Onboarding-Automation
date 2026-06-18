@@ -7,14 +7,15 @@ import re
 import sys
 import time
 from collections.abc import Callable
+
+from ad_service import makeAD
 from data_processing import get_processed_data, update_onboarding_sheet
-from utils import sendEmail
+from fcr_service import numberRegister
 from gmail_service import makeGmail, updateUserInfo
 from pbx_8x8_service import make8x8
-from tpp_service import makeTPP
 from pdf_service import makeLoginSheets
-from ad_service import makeAD
-from fcr_service import numberRegister
+from tpp_service import makeTPP
+from utils import sendEmail
 
 
 def clear_screen() -> None:

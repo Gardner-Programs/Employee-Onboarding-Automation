@@ -8,7 +8,6 @@ parent branch.
 
 from __future__ import annotations
 
-
 OFFICE_DISPLAY_MAP = {
     "Branch C-II": "Branch C",
     "Branch G-II": "Branch G",
