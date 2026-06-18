@@ -17,29 +17,7 @@ from enrichment import (
     clean_identifier, generate_username, standardize_location, determine_region,
     select_template,
 )
-
-# --- HQ sub-terminal routing ---
-# Title-keyword -> target terminal name. Title routing wins over manager match,
-# so a Sr. BDM whose manager has their own terminal still lands in New Branch.
-HQ_TITLE_ROUTING = [
-    ("business development manager", "New Branch"),
-]
-
-# Department-keyword tuples -> target terminal name.
-HQ_DEPT_ROUTING = [
-    (("carrier", "sales"),  "Carrier Sales Team"),
-    (("track",),            "Track & Trace"),
-    (("account",),          "Sales Team"),
-    (("sales",),            "Sales Team"),
-    (("hr",),               "ADMIN"),
-    (("it",),               "ADMIN"),
-    (("credit",),           "ADMIN"),
-    (("billing",),          "ADMIN"),
-    (("accounting",),       "ADMIN"),
-    (("admin",),            "ADMIN"),
-    (("recruiting",),       "ADMIN"),
-    (("marketing",),        "ADMIN"),
-]
+from terminal_routing import determine_terminal
 
 # HQ parent terminal — must never be assigned as a primary terminal.
 # Set to the terminal ID of your HQ parent terminal in Transport Pro
@@ -96,80 +74,15 @@ def get_processed_data() -> list[dict]:
         row["State"] = determine_region(row["Physical Office"])
 
         # --- C. DETERMINE TERMINAL ---
-        found_terminal_id = ""
-        physical_office = str(row["Physical Office"])
-        search_term = physical_office.lower()
-
-        # === 1. BRANCH A SPECIFIC LOGIC ===
-        if physical_office == "Branch A":
-            title_lower = str(row["Title"]).lower()
-            dept_lower = str(row["Department"]).lower()
-            target_terminal_name = ""
-
-            # A. Title-based routing
-            for keyword, target in HQ_TITLE_ROUTING:
-                if keyword in title_lower:
-                    target_terminal_name = target
-                    break
-
-            # B. Manager match — only when no title rule fires.
-            if not target_terminal_name:
-                direct_report_email = str(row["Direct Report"])
-                manager_name = ""
-                if "@" in direct_report_email:
-                    local_part = direct_report_email.split("@")[0]
-                    parts = local_part.replace("_", ".").split(".")
-                    manager_name = f"{parts[0]} {parts[1]}" if len(parts) >= 2 else local_part
-                if manager_name:
-                    search_name = manager_name.lower()
-                    for term in tp_terminals:
-                        if term["id"] == HQ_PARENT_TERMINAL_ID:
-                            continue
-                        if search_name in str(term["name"]).lower():
-                            found_terminal_id = term["id"]
-                            break
-
-            # C. Department fallback
-            if not found_terminal_id and not target_terminal_name:
-                for keywords, target in HQ_DEPT_ROUTING:
-                    if all(kw in dept_lower for kw in keywords):
-                        target_terminal_name = target
-                        break
-                if not target_terminal_name:
-                    target_terminal_name = dept_lower
-
-            # D. Resolve target terminal name -> ID
-            if target_terminal_name and not found_terminal_id:
-                target = target_terminal_name.lower()
-                for term in tp_terminals:
-                    if term["id"] == HQ_PARENT_TERMINAL_ID:
-                        continue
-                    key_name = str(term["name"]).lower()
-                    if target == "sales team" and "carrier" in key_name:
-                        continue
-                    if target in key_name:
-                        found_terminal_id = term["id"]
-                        break
-
-            # E. Safety net
-            if found_terminal_id in ("", HQ_PARENT_TERMINAL_ID):
-                found_terminal_id = ""
-                for term in tp_terminals:
-                    tn = str(term["name"]).lower()
-                    if "admin" in tn and "ap only" in tn and term["id"] != HQ_PARENT_TERMINAL_ID:
-                        found_terminal_id = term["id"]
-                        break
-                if not found_terminal_id:
-                    found_terminal_id = HQ_ADMIN_FALLBACK_ID
-
-        # === 2. GENERAL LOGIC ===
-        else:
-            for term in tp_terminals:
-                if search_term in str(term["name"]).lower():
-                    found_terminal_id = term["id"]
-                    break
-
-        row["Terminal"] = found_terminal_id
+        row["Terminal"] = determine_terminal(
+            str(row["Physical Office"]),
+            row["Title"],
+            row["Department"],
+            row["Direct Report"],
+            tp_terminals,
+            HQ_PARENT_TERMINAL_ID,
+            HQ_ADMIN_FALLBACK_ID,
+        )
 
         # --- D. DETERMINE OFFICE PHONE ---
         # Maps Transport Pro terminal IDs to direct-dial office phone numbers.
