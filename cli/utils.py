@@ -21,22 +21,9 @@ from verification import (
 
 
 # --- Office Display Name ---
-# ONLY for display/address fields (AD City, Gmail address, TPP city).
-# Do NOT use for logic that distinguishes offices (templates, terminals, extensions, etc.).
-
-OFFICE_DISPLAY_MAP = {
-    "Branch C-II": "Branch C",
-    "Branch G-II": "Branch G",
-    "Branch G-I": "Branch G",
-}
-
-def display_office_name(name: str) -> str:
-    """Convert office name for display fields only (e.g. AD City, Gmail address).
-
-    Branch C-II and Branch G-II are distinct offices — this is ONLY for
-    fields where the system expects 'Branch C' or 'Branch G' as a city name.
-    """
-    return OFFICE_DISPLAY_MAP.get(name, name)
+# Re-exported from the dependency-free office_names module so existing
+# `from utils import display_office_name` imports keep working.
+from office_names import OFFICE_DISPLAY_MAP, display_office_name
 
 
 # --- Email Utilities ---
