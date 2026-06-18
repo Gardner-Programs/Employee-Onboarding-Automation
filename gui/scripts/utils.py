@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import re
 import time
 import base64
 from collections.abc import Callable
@@ -12,6 +11,10 @@ from email.message import EmailMessage
 from selenium.webdriver.common.by import By
 from scripts.authenticator import gmail_v1_api, get_admin_email
 from scripts.session_manager import save_session, load_session
+from scripts.verification import (
+    parse_tp_code, parse_caller_code, parse_8x8_code, wait_for_verification_code,
+)
+from scripts.office_names import OFFICE_DISPLAY_MAP, display_office_name
 
 # Callback for GUI interaction (pause dialog)
 _pause_callback: Callable[[str], None] | None = None
@@ -29,21 +32,7 @@ def _pause(message: str = "Press continue to proceed...") -> None:
 
 
 # --- Office Display Name ---
-
-OFFICE_DISPLAY_MAP = {
-    "Branch C-II": "Branch C",
-    "Branch G-II": "Branch G",
-    "Branch G-I": "Branch G",
-}
-
-
-def display_office_name(name: str) -> str:
-    """Convert office name for display fields only (e.g. AD City, Gmail address).
-
-    Branch C-II and Branch G-II are distinct offices — this is ONLY for
-    fields where the system expects 'Branch C' or 'Branch G' as a city name.
-    """
-    return OFFICE_DISPLAY_MAP.get(name, name)
+# display_office_name / OFFICE_DISPLAY_MAP are imported from scripts.office_names.
 
 
 # --- Email Utilities ---
@@ -90,51 +79,17 @@ def _get_code_from_gmail(
 
 def get_tp_code() -> tuple[str, datetime] | None:
     """Return the latest Transport Pro 2FA code and its timestamp from Gmail."""
-    def parse(snippet):
-        search = re.search(r'process\.\s+(\d{6})', snippet)
-        if search: return search.group(1)
-        return None
-    return _get_code_from_gmail("Transport Pro - Verification Code", parse)
+    return _get_code_from_gmail("Transport Pro - Verification Code", parse_tp_code)
 
 
 def get_caller_code() -> tuple[str, datetime] | None:
     """Return the latest Free Caller Registry verification code and timestamp from Gmail."""
-    def parse(snippet):
-        search = re.findall(r'Free Caller Registry Verification Code: \[\d+', snippet)
-        if search: return str(search[0]).replace("Free Caller Registry Verification Code: [", "")
-        return None
-    return _get_code_from_gmail("Free Caller Registry Verification Code:", parse)
+    return _get_code_from_gmail("Free Caller Registry Verification Code:", parse_caller_code)
 
 
 def get_8x8_code() -> tuple[str, datetime] | None:
     """Return the latest 8x8 login code and its timestamp from Gmail."""
-    def parse(snippet):
-        search = re.findall(r'login code: \d+', snippet)
-        if search: return str(search[0]).replace("login code: ", "")
-        return None
-    return _get_code_from_gmail("Your 8x8 login code: ", parse)
-
-
-# --- 2FA Verification Loop ---
-
-def wait_for_verification_code(
-    code_func: Callable[[], tuple[str, datetime] | None],
-    start_time: datetime,
-    max_attempts: int = 10,
-    poll_interval: int = 2,
-) -> str | None:
-    """Poll for a fresh verification code from email.
-
-    Returns the code string, or None if max attempts are exceeded.
-    """
-    attempts = 0
-    while attempts < max_attempts:
-        code_data = code_func()
-        if isinstance(code_data, tuple) and start_time < code_data[1]:
-            return code_data[0]
-        time.sleep(poll_interval)
-        attempts += 1
-    return None
+    return _get_code_from_gmail("Your 8x8 login code: ", parse_8x8_code)
 
 
 # --- Selenium Login Helpers (with session restore) ---
