@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-import os
-import time
 import base64
+import time
 from collections.abc import Callable
 from datetime import datetime
 from email.message import EmailMessage
+
 from selenium.webdriver.common.by import By
-from scripts.authenticator import gmail_v1_api, get_admin_email
-from scripts.session_manager import save_session, load_session
+
+from scripts.authenticator import get_admin_email, gmail_v1_api
+from scripts.session_manager import load_session, save_session
 from scripts.verification import (
-    parse_tp_code, parse_caller_code, parse_8x8_code, wait_for_verification_code,
+    parse_8x8_code,
+    parse_caller_code,
+    parse_tp_code,
 )
-from scripts.office_names import OFFICE_DISPLAY_MAP, display_office_name
 
 # Callback for GUI interaction (pause dialog)
 _pause_callback: Callable[[str], None] | None = None

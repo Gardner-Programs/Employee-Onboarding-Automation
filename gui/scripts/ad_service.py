@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import subprocess
 import json
+import subprocess
+
 from scripts.config import DEFAULT_PASSWORD
-from scripts.utils import display_office_name
+
 # Imported under its existing internal name to avoid touching the call sites.
 from scripts.ps_utils import ps_escape as _ps_escape
-
+from scripts.utils import display_office_name
 
 # AD domain config
 DOMAIN_SUFFIX = "DC=corp,DC=company,DC=com"
@@ -201,7 +202,7 @@ def makeAD(array: list[dict]) -> None:
         upn = f"{username}@{UPN_DOMAIN}"
 
         cmd_parts = [
-            f"New-ADUser",
+            "New-ADUser",
             f"-Name '{_ps_escape(display_name)}'",
             f"-SamAccountName '{sam}'",
             f"-UserPrincipalName '{_ps_escape(upn)}'",
@@ -209,8 +210,8 @@ def makeAD(array: list[dict]) -> None:
             f"-Surname '{_ps_escape(last)}'",
             f"-DisplayName '{_ps_escape(display_name)}'",
             f"-AccountPassword (ConvertTo-SecureString '{_ps_escape(DEFAULT_PASSWORD)}' -AsPlainText -Force)",
-            f"-Enabled $true",
-            f"-ChangePasswordAtLogon $true",
+            "-Enabled $true",
+            "-ChangePasswordAtLogon $true",
             f"-Path '{_ps_escape(target_ou)}'",
         ]
 
@@ -256,9 +257,9 @@ def makeAD(array: list[dict]) -> None:
                 print(f"    WARNING: Manager '{manager_email}' not found in AD")
 
         created += 1
-        print(f"    OK")
+        print("    OK")
 
-    print(f"\n--- AD Account Creation Summary ---")
+    print("\n--- AD Account Creation Summary ---")
     print(f"  Created: {created}")
     print(f"  Skipped (existing): {skipped}")
     print(f"  Errors:  {errors}")

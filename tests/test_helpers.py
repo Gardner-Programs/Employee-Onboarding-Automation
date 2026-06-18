@@ -6,12 +6,10 @@ names. None require Selenium or any API client.
 import time
 
 import pytest
-
-from ps_utils import ps_escape
-from number_assignment import assign_numbers
 from cookie_utils import are_cookies_expired
+from number_assignment import assign_numbers
 from office_names import display_office_name
-
+from ps_utils import ps_escape
 
 # --------------------------------------------------------------------------
 # ps_escape: doubles single quotes so values are safe inside '...' literals.

@@ -4,20 +4,26 @@ from __future__ import annotations
 
 import os
 import time
-import pandas
+
 import gspread_dataframe
+import pandas
 from bs4 import BeautifulSoup
+from config import (
+    DEFAULT_PASSWORD,
+    create_driver,
+    get_spreadsheet,
+    get_tp_key_worksheet,
+    wait_and_click,
+    wait_clickable,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-
-from config import (
-    create_driver, DEFAULT_PASSWORD, get_spreadsheet, get_tp_key_worksheet,
-    wait_and_click, wait_clickable,
-)
-from utils import login_tp, display_office_name
 from terminal_matching import (
-    _match_office_to_parent, _find_best_sub_terminal, _find_hq_parent,
+    _find_best_sub_terminal,
+    _find_hq_parent,
+    _match_office_to_parent,
 )
+from utils import display_office_name, login_tp
 
 TRAINING_TERMINAL = "1145"
 

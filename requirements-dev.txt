@@ -2,3 +2,4 @@
 # (cli/requirements.txt, gui/requirements.txt) so CI can install only what it
 # needs to run the suite.
 pytest>=8.0
+ruff>=0.6

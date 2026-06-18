@@ -8,7 +8,6 @@ the chosen extension and number out so the caller doesn't reuse them.
 
 from __future__ import annotations
 
-
 DEFAULT_EXT_RANGE = (1000, 1999)
 OFFICE_EXT_RANGES = {
     'Branch A': (1000, 1999),

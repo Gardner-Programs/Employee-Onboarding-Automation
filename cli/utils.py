@@ -2,29 +2,30 @@
 
 from __future__ import annotations
 
+import base64
 import os
 import time
-import base64
 from collections.abc import Callable
 from datetime import datetime
 from email.message import EmailMessage
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+
 from authenticator import gmail_v1_api
 from config import wait_and_click, wait_and_type, wait_present
-from verification import (
-    parse_tp_code, parse_caller_code, parse_8x8_code, wait_for_verification_code,
-)
-
 
 # --- Office Display Name ---
 # Re-exported from the dependency-free office_names module so existing
 # `from utils import display_office_name` imports keep working.
-from office_names import OFFICE_DISPLAY_MAP, display_office_name
-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from verification import (
+    parse_8x8_code,
+    parse_caller_code,
+    parse_tp_code,
+    wait_for_verification_code,
+)
 
 # --- Email Utilities ---
 

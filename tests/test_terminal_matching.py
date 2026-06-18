@@ -7,14 +7,12 @@ having extracted these functions into terminal_matching.py.
 """
 
 import pytest
-
 from terminal_matching import (
-    _strip_terminal_name,
-    _match_office_to_parent,
     _find_best_sub_terminal,
     _find_hq_parent,
+    _match_office_to_parent,
+    _strip_terminal_name,
 )
-
 
 # --------------------------------------------------------------------------
 # _strip_terminal_name: normalises a raw terminal label for fuzzy comparison.

@@ -1,5 +1,7 @@
 # Employee Onboarding Automation
 
+[![tests](https://github.com/Gardner-Programs/Employee-Onboarding-Automation/actions/workflows/tests.yml/badge.svg)](https://github.com/Gardner-Programs/Employee-Onboarding-Automation/actions/workflows/tests.yml)
+
 IT onboarding across five systems that don't talk to each other — automated from a single Google Sheet.
 
 The problem: provisioning a new employee requires creating accounts in Google Workspace, Active Directory, 8x8 VoIP, and Transport Pro, plus registering their number with the Free Caller Registry and generating a PDF login sheet. Done manually it takes 30–45 minutes per hire and is error-prone. This tool does it in one run.

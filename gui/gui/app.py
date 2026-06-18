@@ -11,15 +11,15 @@ Provides a tkinter-based interface that mirrors the CLI menu with:
 
 from __future__ import annotations
 
-import os
-import sys
-import re
 import json
+import os
+import re
+import sys
 import threading
 import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
-from datetime import datetime
 from collections.abc import Callable
+from datetime import datetime
+from tkinter import messagebox, scrolledtext, ttk
 from typing import Any
 
 # --- Persist last login email ---
@@ -445,11 +445,11 @@ class AccountCreationApp:
                 if not self.array:
                     print("No users to process!")
                     return
-                from scripts.pdf_service import makeLoginSheets
+                from scripts.ad_service import makeAD
                 from scripts.gmail_service import makeGmail, updateUserInfo
                 from scripts.pbx_8x8_service import make8x8
+                from scripts.pdf_service import makeLoginSheets
                 from scripts.tpp_service import makeTPP
-                from scripts.ad_service import makeAD
 
                 steps: list[tuple[str, Callable[[list[dict]], None]]] = [
                     ("Login Sheets", makeLoginSheets),
@@ -628,6 +628,6 @@ class AccountCreationApp:
 def launch() -> None:
     """Entry point to launch the GUI application."""
     root = tk.Tk()
-    app = AccountCreationApp(root)
+    AccountCreationApp(root)
 
     root.mainloop()

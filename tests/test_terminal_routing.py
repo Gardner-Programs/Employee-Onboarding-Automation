@@ -6,9 +6,7 @@ in directly.
 """
 
 import pytest
-
-from terminal_routing import parse_manager_name, determine_terminal
-
+from terminal_routing import determine_terminal, parse_manager_name
 
 HQ_PARENT = "1"
 FALLBACK = "999"

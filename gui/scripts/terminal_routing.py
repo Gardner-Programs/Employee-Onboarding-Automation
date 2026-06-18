@@ -9,7 +9,6 @@ tested without Google Sheets.
 
 from __future__ import annotations
 
-
 # Title-keyword -> target terminal name. Title routing wins over manager match,
 # so a Sr. BDM whose manager has their own terminal still lands in New Branch.
 HQ_TITLE_ROUTING = [

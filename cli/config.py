@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import os
-import gspread
 from contextlib import contextmanager
 from typing import Generator
+
+import gspread
+from authenticator import sheets_credentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from authenticator import sheets_credentials
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 # --- Global Constants ---
 PROFILE_PATH = r"C:\Users\your_username\AppData\Roaming\Mozilla\Firefox\Profiles\selenium_profile"
